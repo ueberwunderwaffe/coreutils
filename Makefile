@@ -1,2 +1,2 @@
 ls:
-	gcc file_utilities/ls.c -o ls -Wall -Wextra
+	gcc file_utilities/ls.c -o ls.out -Wall -Wextra

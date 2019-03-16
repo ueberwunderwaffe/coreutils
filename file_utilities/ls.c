@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -12,9 +13,29 @@
 #define BLUE_COLOR "\e[36;1m"
 #define RESET_COLOR "\e[m"
 
+int compare(const void *a, const void *b) {
+  char *first = (char *)malloc(strlen(*(char **)a) * sizeof(char));
+  char *second = (char *)malloc(strlen(*(char **)b) * sizeof(char));
+
+  strcpy(first, *(char **)a);
+  strcpy(second, *(char **)b);
+
+  for (int i = 0; first[i] != '\0'; ++i)
+    first[i] = tolower(first[i]);
+  for (int i = 0; second[i] != '\0'; ++i)
+    second[i] = tolower(second[i]);
+
+  int result = strcmp(first, second);
+
+  free(first);
+  free(second);
+
+  return (result);
+}
+
 int main() {
   char *curr_dir = NULL;
-  long *curr_file = NULL;
+  char **curr_file = NULL;
   DIR *dir_pointer = NULL;
   struct dirent *dir_content = NULL;
 
@@ -40,13 +61,19 @@ int main() {
   if (num_files == 0) {
     return (0);
   } else {
-    curr_file = (long *)malloc(num_files * sizeof(long));
+    curr_file = (char **)malloc(num_files * sizeof(char));
+    for (int i = 0; i < num_files; i++)
+      curr_file[i] = (char *)malloc(256 * sizeof(char));
+
     if (curr_file == NULL) {
       printf("[FAILED]: Memory allocation\n");
+      
+      for(int i = 0; i < num_files; i++)
+        free(curr_file[i]);
       free(curr_file);
+      
       return (-1);
     }
-    memset(curr_file, 0, num_files * sizeof(long));
   }
 
   dir_pointer = opendir((const char *)curr_dir);
@@ -58,10 +85,13 @@ int main() {
 
   for (int i = 0; (dir_content = readdir(dir_pointer)) != NULL;) {
     if (dir_content->d_name[0] != '.') {
-      curr_file[i] = (long)dir_content->d_name;
+      curr_file[i] = dir_content->d_name;
       ++i;
     }
   }
+  
+  // Sort in alphabetical order.
+  qsort(curr_file, num_files, sizeof(const char **), compare);
 
   for (int i = 0; i < num_files; ++i) {
     struct stat st;
