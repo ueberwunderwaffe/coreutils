@@ -9,6 +9,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define TRUE 1
+#define FALSE 0
+
 #define YELLOW_COLOR "\e[33;1m"
 #define BLUE_COLOR "\e[36;1m"
 #define RESET_COLOR "\e[m"
@@ -33,7 +36,33 @@ int compare(const void *a, const void *b) {
   return (result);
 }
 
-int main() {
+int flags(int argc, char **argv, char **curr_file, int num_files, int *a_flag) {
+  int error = FALSE;
+  int f_flag = TRUE;
+
+  for (int i = 1; i < argc; i++) {
+    if (argv[i][0] == '-') {
+      if (argv[i][1] == 'f' && argv[i][2] == '\0') {
+        *a_flag = TRUE;
+        f_flag = FALSE;
+      } else if (argv[i][1] == 'a' && argv[i][2] == '\0') {
+        *a_flag = TRUE;
+      }
+    } else {
+      error = TRUE;
+      printf("ls: cannot access '%s': No such file or directory\n", argv[i]);
+    }
+  }
+
+  if (f_flag) {
+    // Sort in alphabetical order.
+    qsort(curr_file, num_files, sizeof(const char **), compare);
+  }
+
+  return (error);
+}
+
+int main(int argc, char **argv) {
   char *curr_dir = NULL;
   char **curr_file = NULL;
   DIR *dir_pointer = NULL;
@@ -51,8 +80,7 @@ int main() {
   int num_files = 0;
   dir_pointer = opendir((const char *)curr_dir);
   while ((dir_content = readdir(dir_pointer)) != NULL)
-    if (dir_content->d_name[0] != '.')
-      num_files++;
+    num_files++;
   closedir(dir_pointer);
 
   dir_pointer = NULL;
@@ -67,11 +95,11 @@ int main() {
 
     if (curr_file == NULL) {
       printf("[FAILED]: Memory allocation\n");
-      
-      for(int i = 0; i < num_files; i++)
+
+      for (int i = 0; i < num_files; i++)
         free(curr_file[i]);
       free(curr_file);
-      
+
       return (-1);
     }
   }
@@ -83,38 +111,44 @@ int main() {
     return (-1);
   }
 
-  for (int i = 0; (dir_content = readdir(dir_pointer)) != NULL;) {
-    if (dir_content->d_name[0] != '.') {
-      curr_file[i] = dir_content->d_name;
-      ++i;
-    }
+  for (int i = 0; (dir_content = readdir(dir_pointer)) != NULL; ++i) {
+    curr_file[i] = dir_content->d_name;
   }
-  
-  // Sort in alphabetical order.
-  qsort(curr_file, num_files, sizeof(const char **), compare);
+
+  int a_flag = FALSE;
+  int flag_error = flags(argc, argv, curr_file, num_files, &a_flag);
+  if (flag_error) {
+    closedir(dir_pointer);
+    free(curr_file);
+    return (-1);
+  }
 
   for (int i = 0; i < num_files; ++i) {
     struct stat st;
-    // Check if the file is executable
-    if (stat((const char *)curr_file[i], &st) == 0 && st.st_mode & S_IXUSR) {
-      int fd = -1;
 
-      fd = open((const char *)curr_file[i], O_RDONLY, 0);
-      if (fd == -1) {
-        printf("[FAILED]: Opening file/directory\n");
-        free(curr_file);
-        return (-1);
-      }
+    if (curr_file[i][0] != '.' || a_flag) {
+      // Check if the file is executable
+      if (stat((const char *)curr_file[i], &st) == 0 && st.st_mode & S_IXUSR) {
+        int fd = -1;
 
-      fstat(fd, &st);
-      if (S_ISDIR(st.st_mode)) {
-        printf(BLUE_COLOR "%s  " RESET_COLOR, (const char *)curr_file[i]);
+        fd = open((const char *)curr_file[i], O_RDONLY, 0);
+        if (fd == -1) {
+          printf("[FAILED]: Opening file/directory\n");
+          closedir(dir_pointer);
+          free(curr_file);
+          return (-1);
+        }
+
+        fstat(fd, &st);
+        if (S_ISDIR(st.st_mode)) {
+          printf(BLUE_COLOR "%s  " RESET_COLOR, (const char *)curr_file[i]);
+        } else {
+          printf(YELLOW_COLOR "%s  " RESET_COLOR, (const char *)curr_file[i]);
+        }
+        close(fd);
       } else {
-        printf(YELLOW_COLOR "%s  " RESET_COLOR, (const char *)curr_file[i]);
+        printf("%s  ", (const char *)curr_file[i]);
       }
-      close(fd);
-    } else {
-      printf("%s  ", (const char *)curr_file[i]);
     }
   }
   putchar('\n');
