@@ -1,12 +1,15 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <grp.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #define TRUE 1
@@ -36,7 +39,8 @@ int compare(const void *a, const void *b) {
   return (result);
 }
 
-int flags(int argc, char **argv, int *l_flag, int *f_flag, int *F_flag, int *a_flag, int *R_flag, int *d_flag, int *t_flag, int *h_flag) {
+int flags(int argc, char **argv, int *l_flag, int *f_flag, int *F_flag,
+          int *a_flag, int *R_flag, int *d_flag, int *t_flag, int *h_flag) {
   for (int i = 1; i < argc; i++) {
     if (argv[i][0] == '-') {
       if (argv[i][1] == 'l' && argv[i][2] == '\0') {
@@ -44,15 +48,15 @@ int flags(int argc, char **argv, int *l_flag, int *f_flag, int *F_flag, int *a_f
       } else if (argv[i][1] == 'f' && argv[i][2] == '\0') {
         *a_flag = TRUE;
         *f_flag = TRUE;
-      } else if(argv[i][1] == 'F' && argv[i][2] == '\0') {
+      } else if (argv[i][1] == 'F' && argv[i][2] == '\0') {
         *F_flag = TRUE;
       } else if (argv[i][1] == 'a' && argv[i][2] == '\0') {
         *a_flag = TRUE;
-      } else if(argv[i][1] == 'R' && argv[i][2] == '\0') {
+      } else if (argv[i][1] == 'R' && argv[i][2] == '\0') {
         *R_flag = TRUE;
       } else if (argv[i][1] == 'd' && argv[i][2] == '\0') {
         *d_flag = TRUE;
-      } else if(argv[i][1] == 't' && argv[i][2] == '\0') {
+      } else if (argv[i][1] == 't' && argv[i][2] == '\0') {
         *t_flag = TRUE;
       } else if (argv[i][1] == 'h' && argv[i][2] == '\0') {
         *h_flag = TRUE;
@@ -66,29 +70,123 @@ int flags(int argc, char **argv, int *l_flag, int *f_flag, int *F_flag, int *a_f
   return (TRUE);
 }
 
-int print(const char ** curr_file, int num_files, int *l_flag, int *F_flag, int *a_flag, int *R_flag, int *d_flag, int *t_flag, int *h_flag) {
+int print(const char **curr_file, int num_files, int *l_flag, int *F_flag,
+          int *a_flag, int *R_flag, int *d_flag, int *t_flag, int *h_flag) {
   for (int i = 0; i < num_files; ++i) {
+    int fd = -1;
     struct stat st;
 
+    fd = open(curr_file[i], O_RDONLY, 0);
+    if (fd == -1) {
+      printf("[FAILED]: Opening file/directory\n");
+      return (FALSE);
+    }
+
+    if (fstat(fd, &st)) {
+      printf("[FAILED]: fstat()\n");
+      close(fd);
+      return (FALSE);
+    }
+
     if (curr_file[i][0] != '.' || *a_flag) {
+      if (*l_flag) {
+        mode_t permission;
+
+        if (S_ISDIR(st.st_mode))
+          putchar('d');
+        else
+          putchar('-');
+
+        // Owner
+        permission = st.st_mode & S_IRWXU;
+
+        if (permission & S_IRUSR)
+          putchar('r');
+        else
+          putchar('-');
+
+        if (permission & S_IWUSR)
+          putchar('w');
+        else
+          putchar('-');
+
+        if (permission & S_IXUSR)
+          putchar('x');
+        else
+          putchar('-');
+
+        // Group
+        permission = st.st_mode & S_IRWXG;
+
+        if (permission & S_IRGRP)
+          putchar('r');
+        else
+          putchar('-');
+
+        if (permission & S_IWGRP)
+          putchar('w');
+        else
+          putchar('-');
+
+        if (permission & S_IXGRP)
+          putchar('x');
+        else
+          putchar('-');
+
+        // Others
+        permission = st.st_mode & S_IRWXO;
+
+        if (permission & S_IROTH)
+          putchar('r');
+        else
+          putchar('-');
+
+        if (permission & S_IWOTH)
+          putchar('w');
+        else
+          putchar('-');
+
+        if (permission & S_IXOTH)
+          putchar('x');
+        else
+          putchar('-');
+
+        // Number of hard links
+        printf(" %d ", (int)st.st_nlink);
+
+        // User name
+        struct passwd *user_name = getpwuid(st.st_uid);
+        printf("%s ", user_name->pw_name);
+
+        // Group name
+        struct group *group_name = getgrgid(st.st_gid);
+        printf("%s ", group_name->gr_name);
+
+        // File size
+        printf("%5lld ", (long long)st.st_size);
+
+        // Date and time
+        char time[100];
+        memset(time, 0, sizeof(time));
+        strcpy(time, ctime(&st.st_ctime));
+        for (int i = 0; time[i] != '\0'; i++) {
+          if (time[i] == '\n') {
+            time[i] = '\0';
+            break;
+          }
+        }
+        printf("%s ", time);
+      }
+
       // Check if the file is executable
       if (stat((const char *)curr_file[i], &st) == 0 && st.st_mode & S_IXUSR) {
-        int fd = -1;
-
-        fd = open(curr_file[i], O_RDONLY, 0);
-        if (fd == -1) {
-          printf("[FAILED]: Opening file/directory\n");
-          return (FALSE);
-        }
-
-        fstat(fd, &st);
         if (S_ISDIR(st.st_mode)) {
-          if(*F_flag)
+          if (*F_flag)
             printf(BLUE_COLOR "%s" RESET_COLOR "/  ", curr_file[i]);
           else
             printf(BLUE_COLOR "%s  " RESET_COLOR, curr_file[i]);
         } else {
-          if(*F_flag)
+          if (*F_flag)
             printf(YELLOW_COLOR "%s" RESET_COLOR "*  ", curr_file[i]);
           else
             printf(YELLOW_COLOR "%s  " RESET_COLOR, curr_file[i]);
@@ -97,6 +195,9 @@ int print(const char ** curr_file, int num_files, int *l_flag, int *F_flag, int 
       } else {
         printf("%s  ", curr_file[i]);
       }
+
+      if (*l_flag && i != num_files - 1)
+        putchar('\n');
     }
   }
   putchar('\n');
@@ -162,16 +263,38 @@ int main(int argc, char **argv) {
   }
   free(dir_content);
 
-  int l_flag = FALSE; // long format, displaying Unix file types, permissions, number of hard links, owner, group, size, last-modified date and filename.
-  int f_flag = FALSE; // do not sort. Useful for directories containing large numbers of files.
-  int F_flag = FALSE; // appends a character revealing the nature of a file, for example, * for an executable, or / for a directory. Regular files have no suffix.
-  int a_flag = FALSE; // lists all files in the given directory, including those whose names start with "." (which are hidden files in Unix).
-  int R_flag = FALSE; // recursively lists subdirectories.
-  int d_flag = FALSE; // shows information about a symbolic link or directory, rather than about the link's target or listing the contents of a directory.
-  int t_flag = FALSE; // sort the list of files by modification time.
-  int h_flag = FALSE; // print sizes in human readable format. [This option is not part of the POSIX standard]
+                       ///////////
+                      // FLAGS //
+                     ///////////
+  
+  int l_flag = FALSE; // long format, displaying Unix file types, permissions,
+                      // number of hard links, owner, group, size,
+                      // last-modified date and filename.
 
-  int flag_error = flags(argc, argv, &l_flag, &f_flag, &F_flag, &a_flag, &R_flag, &d_flag, &t_flag, &h_flag);
+  int f_flag = FALSE; // do not sort. Useful for directories containing large
+                      // numbers of files.
+
+  int F_flag = FALSE; // appends a character revealing the nature of a file, for
+                      // example, * for an executable, or / for a directory.
+                      // Regular files have no suffix.
+
+  int a_flag = FALSE; // lists all files in the given directory,
+                      // including those whose names start with "."
+                      // (which are hidden files in Unix).
+
+  int R_flag = FALSE; // recursively lists subdirectories.
+
+  int d_flag = FALSE; // shows information about a symbolic link or directory,
+                      // rather than about the link's target or listing the
+                      // contents of a directory.
+
+  int t_flag = FALSE; // sort the list of files by modification time.
+
+  int h_flag = FALSE; // print sizes in human readable format. [This option is
+                      // not part of the POSIX standard]
+
+  int flag_error = flags(argc, argv, &l_flag, &f_flag, &F_flag, &a_flag,
+                         &R_flag, &d_flag, &t_flag, &h_flag);
   if (flag_error == FALSE) {
     closedir(dir_pointer);
     free(curr_file);
@@ -182,9 +305,10 @@ int main(int argc, char **argv) {
     // Sort in alphabetical order.
     qsort(curr_file, num_files, sizeof(const char **), compare);
   }
-  
-  int print_error = print((const char **)curr_file, num_files, &l_flag, &F_flag, &a_flag, &R_flag, &d_flag, &t_flag, &h_flag);
-  if(print_error == FALSE) {
+
+  int print_error = print((const char **)curr_file, num_files, &l_flag, &F_flag,
+                          &a_flag, &R_flag, &d_flag, &t_flag, &h_flag);
+  if (print_error == FALSE) {
     closedir(dir_pointer);
     free(curr_file);
     return (-1);
