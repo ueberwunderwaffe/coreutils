@@ -70,8 +70,63 @@ int flags(int argc, char **argv, int *l_flag, int *f_flag, int *F_flag,
   return (TRUE);
 }
 
-int print(const char **curr_file, int num_files, int *l_flag, int *F_flag,
-          int *a_flag, int *R_flag, int *d_flag, int *t_flag, int *h_flag) {
+long long total(const char **curr_file, int num_files, int *f_flag,
+                int *a_flag) {
+  int fd = -1;
+  struct stat st;
+
+  long long result = 0;
+  long long file_size;
+  int filesys_block_size;
+  int file_blocks;
+
+  for (int i = 0; i < num_files; i++) {
+    if (curr_file[i][0] != '.' || *f_flag || *a_flag) {
+      fd = open(curr_file[i], O_RDONLY, 0);
+
+      if (fd == -1) {
+        printf("[FAILED]: Opening file/directory\n");
+        return (FALSE);
+      }
+
+      if (fstat(fd, &st)) {
+        printf("[FAILED]: fstat()\n");
+        close(fd);
+        return (FALSE);
+      }
+
+      filesys_block_size = (int)st.st_blksize;
+      file_size = (long long)st.st_size;
+      file_blocks = 0;
+
+      while (file_size > 0) {
+        file_size -= filesys_block_size;
+        file_blocks++;
+      }
+
+      result += file_blocks;
+
+      close(fd);
+    }
+  }
+
+  return result * ((filesys_block_size / 512) / 2); // ???
+}
+
+int print(const char **curr_file, int num_files, int *l_flag, int *f_flag,
+          int *F_flag, int *a_flag, int *R_flag, int *d_flag, int *t_flag,
+          int *h_flag) {
+  long long total_block_size = -1;
+  if (*l_flag) {
+    total_block_size =
+        total((const char **)curr_file, num_files, f_flag, a_flag);
+
+    if (total_block_size == -1)
+      printf("[FAILED]: total()\n");
+
+    printf("total %lld\n", total_block_size);
+  }
+
   for (int i = 0; i < num_files; ++i) {
     int fd = -1;
     struct stat st;
@@ -152,7 +207,7 @@ int print(const char **curr_file, int num_files, int *l_flag, int *F_flag,
           putchar('-');
 
         // Number of hard links
-        printf(" %d ", (int)st.st_nlink);
+        printf(" %4d ", (int)st.st_nlink);
 
         // User name
         struct passwd *user_name = getpwuid(st.st_uid);
@@ -263,10 +318,10 @@ int main(int argc, char **argv) {
   }
   free(dir_content);
 
-                       ///////////
-                      // FLAGS //
-                     ///////////
-  
+  ///////////
+  // FLAGS //
+  ///////////
+
   int l_flag = FALSE; // long format, displaying Unix file types, permissions,
                       // number of hard links, owner, group, size,
                       // last-modified date and filename.
@@ -306,8 +361,8 @@ int main(int argc, char **argv) {
     qsort(curr_file, num_files, sizeof(const char **), compare);
   }
 
-  int print_error = print((const char **)curr_file, num_files, &l_flag, &F_flag,
-                          &a_flag, &R_flag, &d_flag, &t_flag, &h_flag);
+  int print_error = print((const char **)curr_file, num_files, &l_flag, &f_flag,
+                          &F_flag, &a_flag, &R_flag, &d_flag, &t_flag, &h_flag);
   if (print_error == FALSE) {
     closedir(dir_pointer);
     free(curr_file);
