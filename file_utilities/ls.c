@@ -15,9 +15,28 @@
 #define TRUE 1
 #define FALSE 0
 
+#define SIZE 256
+
 #define YELLOW_COLOR "\e[33;1m"
 #define BLUE_COLOR "\e[36;1m"
 #define RESET_COLOR "\e[m"
+
+struct file_data {
+  char permission[SIZE];
+  int hard_links;
+  char user_name[SIZE];
+  char group_name[SIZE];
+  int block_size;
+  long long file_size;
+  char date[SIZE];
+};
+
+int compare(const void *, const void *);
+int flags(int, char **, int *, int *, int *, int *, int *, int *, int *, int *);
+int data_filling(const char **, int);
+long long total(const char **, int, int *, int *);
+int print(const char **, int, int *, int *, int *, int *, int *, int *, int *,
+          int *);
 
 int compare(const void *a, const void *b) {
   char *first = (char *)malloc(strlen(*(char **)a) * sizeof(char));
@@ -70,68 +89,19 @@ int flags(int argc, char **argv, int *l_flag, int *f_flag, int *F_flag,
   return (TRUE);
 }
 
-long long total(const char **curr_file, int num_files, int *f_flag,
-                int *a_flag) {
-  int fd = -1;
-  struct stat st;
-
-  long long result = 0;
-  long long file_size;
-  int filesys_block_size;
-  int file_blocks;
-
-  for (int i = 0; i < num_files; i++) {
-    if (curr_file[i][0] != '.' || *f_flag || *a_flag) {
-      fd = open(curr_file[i], O_RDONLY, 0);
-
-      if (fd == -1) {
-        printf("[FAILED]: Opening file/directory\n");
-        return (FALSE);
-      }
-
-      if (fstat(fd, &st)) {
-        printf("[FAILED]: fstat()\n");
-        close(fd);
-        return (FALSE);
-      }
-
-      filesys_block_size = (int)st.st_blksize;
-      file_size = (long long)st.st_size;
-      file_blocks = 0;
-
-      while (file_size > 0) {
-        file_size -= filesys_block_size;
-        file_blocks++;
-      }
-
-      result += file_blocks;
-
-      close(fd);
-    }
-  }
-
-  return result * ((filesys_block_size / 512) / 2); // ???
-}
-
-int print(const char **curr_file, int num_files, int *l_flag, int *f_flag,
-          int *F_flag, int *a_flag, int *R_flag, int *d_flag, int *t_flag,
-          int *h_flag) {
-  long long total_block_size = -1;
-  if (*l_flag) {
-    total_block_size =
-        total((const char **)curr_file, num_files, f_flag, a_flag);
-
-    if (total_block_size == -1)
-      printf("[FAILED]: total()\n");
-
-    printf("total %lld\n", total_block_size);
+int data_filling(const char **file_name, int num_files) {
+  struct file_data *files = NULL;
+  files = (struct file_data *)malloc(sizeof(struct file_data) * num_files);
+  if (files == NULL) {
+    printf("[FAILED]: Memory allocation\n");
+    free(files);
+    return FALSE;
   }
 
   for (int i = 0; i < num_files; ++i) {
-    int fd = -1;
     struct stat st;
-
-    fd = open(curr_file[i], O_RDONLY, 0);
+    int fd = -1;
+    fd = open(file_name[i], O_RDONLY, 0);
     if (fd == -1) {
       printf("[FAILED]: Opening file/directory\n");
       return (FALSE);
@@ -143,112 +113,198 @@ int print(const char **curr_file, int num_files, int *l_flag, int *f_flag,
       return (FALSE);
     }
 
-    if (curr_file[i][0] != '.' || *a_flag) {
+    int perm_index = 0;
+    mode_t permission;
+
+    if (S_ISDIR(st.st_mode))
+      files[i].permission[perm_index++] = 'd';
+    else
+      files[i].permission[perm_index++] = '-';
+
+    // Owner
+    permission = st.st_mode & S_IRWXU;
+
+    if (permission & S_IRUSR)
+      files[i].permission[perm_index++] = 'r';
+    else
+      files[i].permission[perm_index++] = '-';
+
+    if (permission & S_IWUSR)
+      files[i].permission[perm_index++] = 'w';
+    else
+      files[i].permission[perm_index++] = '-';
+
+    if (permission & S_IXUSR)
+      files[i].permission[perm_index++] = 'x';
+    else
+      files[i].permission[perm_index++] = '-';
+
+    // Group
+    permission = st.st_mode & S_IRWXG;
+
+    if (permission & S_IRGRP)
+      files[i].permission[perm_index++] = 'r';
+    else
+      files[i].permission[perm_index++] = '-';
+
+    if (permission & S_IWGRP)
+      files[i].permission[perm_index++] = 'w';
+    else
+      files[i].permission[perm_index++] = '-';
+
+    if (permission & S_IXGRP)
+      files[i].permission[perm_index++] = 'x';
+    else
+      files[i].permission[perm_index++] = '-';
+
+    // Others
+    permission = st.st_mode & S_IRWXO;
+
+    if (permission & S_IROTH)
+      files[i].permission[perm_index++] = 'r';
+    else
+      files[i].permission[perm_index++] = '-';
+
+    if (permission & S_IWOTH)
+      files[i].permission[perm_index++] = 'w';
+    else
+      files[i].permission[perm_index++] = '-';
+
+    if (permission & S_IXOTH)
+      files[i].permission[perm_index++] = 'x';
+    else
+      files[i].permission[perm_index++] = '-';
+
+    // Number of hard links
+    files[i].hard_links = (int)st.st_nlink;
+
+    // User name
+    struct passwd *user_name = getpwuid(st.st_uid);
+    strcpy(files[i].user_name, user_name->pw_name);
+
+    // Group name
+    struct group *group_name = getgrgid(st.st_gid);
+    strcpy(files[i].group_name, group_name->gr_name);
+    
+    // Block size
+    files[i].block_size = (int)st.st_blksize;
+
+    // File size
+    files[i].file_size = (long long)st.st_size;
+
+    // Date and time
+    char date[SIZE];
+    memset(date, 0, sizeof(date));
+    strcpy(date, ctime(&st.st_ctime));
+    for (int i = 0; date[i] != '\0'; i++) {
+      if (date[i] == '\n') {
+        date[i] = '\0';
+        break;
+      }
+    }
+    strcpy(files[i].date, date);
+
+    close(fd);
+  }
+
+  free(files);
+
+  return TRUE;
+}
+
+long long total(const char **file_name, int num_files, int *f_flag,
+                int *a_flag) {
+  struct file_data *files = NULL;
+  files = (struct file_data *)malloc(num_files * sizeof(struct file_data));
+  if (files == NULL) {
+    printf("[FAILED]: Memory allocation\n");
+    free(files);
+    return FALSE;
+  }
+
+  long long result = 0;
+  int sys_block_size = 0;
+  int file_size = 0;
+  int file_blocks = 0;
+
+  for (int i = 0; i < num_files; i++) {
+    if (file_name[i][0] != '.' || *f_flag || *a_flag) {
+      sys_block_size = files[i].block_size;
+      file_size = files[i].file_size;
+      file_blocks = 0;
+
+      while (file_size > 0) {
+        file_size -= sys_block_size;
+        file_blocks++;
+      }
+
+      result += file_blocks;
+    }
+  }
+
+  free(files);
+
+  return result * ((sys_block_size/ 512) / 2); // ???
+}
+
+int print(const char **file_name, int num_files, int *l_flag, int *f_flag,
+          int *F_flag, int *a_flag, int *R_flag, int *d_flag, int *t_flag,
+          int *h_flag) {
+  if (*l_flag) {
+    printf("total %lld\n", total((const char **)file_name, num_files, f_flag, a_flag));
+  }
+
+
+  struct file_data *files = NULL;
+  files = (struct file_data *)malloc(num_files * sizeof(struct file_data));
+  if (files == NULL) {
+    printf("[FAILED]: Memory allocation\n");
+    free(files);
+    return FALSE;
+  }
+
+  for (int i = 0; i < num_files; ++i) {
+    struct stat st;
+    int fd = -1;
+
+    fd = open(file_name[i], O_RDONLY, 0);
+    if (fd == -1) {
+      printf("[FAILED]: Opening file/directory\n");
+      return (FALSE);
+    }
+
+    if (fstat(fd, &st)) {
+      printf("[FAILED]: fstat()\n");
+      close(fd);
+      return (FALSE);
+    }
+
+    if (file_name[i][0] != '.' || *f_flag || *a_flag) {
       if (*l_flag) {
-        mode_t permission;
-
-        if (S_ISDIR(st.st_mode))
-          putchar('d');
-        else
-          putchar('-');
-
-        // Owner
-        permission = st.st_mode & S_IRWXU;
-
-        if (permission & S_IRUSR)
-          putchar('r');
-        else
-          putchar('-');
-
-        if (permission & S_IWUSR)
-          putchar('w');
-        else
-          putchar('-');
-
-        if (permission & S_IXUSR)
-          putchar('x');
-        else
-          putchar('-');
-
-        // Group
-        permission = st.st_mode & S_IRWXG;
-
-        if (permission & S_IRGRP)
-          putchar('r');
-        else
-          putchar('-');
-
-        if (permission & S_IWGRP)
-          putchar('w');
-        else
-          putchar('-');
-
-        if (permission & S_IXGRP)
-          putchar('x');
-        else
-          putchar('-');
-
-        // Others
-        permission = st.st_mode & S_IRWXO;
-
-        if (permission & S_IROTH)
-          putchar('r');
-        else
-          putchar('-');
-
-        if (permission & S_IWOTH)
-          putchar('w');
-        else
-          putchar('-');
-
-        if (permission & S_IXOTH)
-          putchar('x');
-        else
-          putchar('-');
-
-        // Number of hard links
-        printf(" %4d ", (int)st.st_nlink);
-
-        // User name
-        struct passwd *user_name = getpwuid(st.st_uid);
-        printf("%s ", user_name->pw_name);
-
-        // Group name
-        struct group *group_name = getgrgid(st.st_gid);
-        printf("%s ", group_name->gr_name);
-
-        // File size
-        printf("%5lld ", (long long)st.st_size);
-
-        // Date and time
-        char time[100];
-        memset(time, 0, sizeof(time));
-        strcpy(time, ctime(&st.st_ctime));
-        for (int i = 0; time[i] != '\0'; i++) {
-          if (time[i] == '\n') {
-            time[i] = '\0';
-            break;
-          }
-        }
-        printf("%s ", time);
+        printf("%s", files[i].permission);
+        printf(" %4d ", files[i].hard_links);
+        printf("%s ", files[i].user_name);
+        printf("%s ", files[i].group_name);
+        printf("%5lld ", files[i].file_size);
+        printf("%s ", files[i].date);
       }
 
       // Check if the file is executable
-      if (stat((const char *)curr_file[i], &st) == 0 && st.st_mode & S_IXUSR) {
+      if (stat((const char *)file_name[i], &st) == 0 && st.st_mode & S_IXUSR) {
         if (S_ISDIR(st.st_mode)) {
           if (*F_flag)
-            printf(BLUE_COLOR "%s" RESET_COLOR "/  ", curr_file[i]);
+            printf(BLUE_COLOR "%s" RESET_COLOR "/  ", file_name[i]);
           else
-            printf(BLUE_COLOR "%s  " RESET_COLOR, curr_file[i]);
+            printf(BLUE_COLOR "%s  " RESET_COLOR, file_name[i]);
         } else {
           if (*F_flag)
-            printf(YELLOW_COLOR "%s" RESET_COLOR "*  ", curr_file[i]);
+            printf(YELLOW_COLOR "%s" RESET_COLOR "*  ", file_name[i]);
           else
-            printf(YELLOW_COLOR "%s  " RESET_COLOR, curr_file[i]);
+            printf(YELLOW_COLOR "%s  " RESET_COLOR, file_name[i]);
         }
         close(fd);
       } else {
-        printf("%s  ", curr_file[i]);
+        printf("%s  ", file_name[i]);
       }
 
       if (*l_flag && i != num_files - 1)
@@ -257,12 +313,14 @@ int print(const char **curr_file, int num_files, int *l_flag, int *f_flag,
   }
   putchar('\n');
 
+  free(files);
+
   return (TRUE);
 }
 
 int main(int argc, char **argv) {
   char *curr_dir = NULL;
-  char **curr_file = NULL;
+  char **file_name = NULL;
   DIR *dir_pointer = NULL;
   struct dirent *dir_content = NULL;
 
@@ -287,16 +345,16 @@ int main(int argc, char **argv) {
   if (num_files == 0) {
     return (0);
   } else {
-    curr_file = (char **)malloc(num_files * sizeof(char));
+    file_name = (char **)malloc(num_files * sizeof(char));
     for (int i = 0; i < num_files; i++)
-      curr_file[i] = (char *)malloc(256 * sizeof(char));
+      file_name[i] = (char *)malloc(SIZE * sizeof(char));
 
-    if (curr_file == NULL) {
+    if (file_name == NULL) {
       printf("[FAILED]: Memory allocation\n");
 
       for (int i = 0; i < num_files; i++)
-        free(curr_file[i]);
-      free(curr_file);
+        free(file_name[i]);
+      free(file_name);
       free(dir_content);
       closedir(dir_pointer);
 
@@ -309,18 +367,14 @@ int main(int argc, char **argv) {
     printf("[ERROR]: Couldn't open the directory");
     closedir(dir_pointer);
     free(dir_content);
-    free(curr_file);
+    free(file_name);
     return (-1);
   }
 
   for (int i = 0; (dir_content = readdir(dir_pointer)) != NULL; ++i) {
-    curr_file[i] = dir_content->d_name;
+    file_name[i] = dir_content->d_name;
   }
   free(dir_content);
-
-  ///////////
-  // FLAGS //
-  ///////////
 
   int l_flag = FALSE; // long format, displaying Unix file types, permissions,
                       // number of hard links, owner, group, size,
@@ -352,25 +406,26 @@ int main(int argc, char **argv) {
                          &R_flag, &d_flag, &t_flag, &h_flag);
   if (flag_error == FALSE) {
     closedir(dir_pointer);
-    free(curr_file);
+    free(file_name);
     return (-1);
   }
 
   if (f_flag == FALSE) {
     // Sort in alphabetical order.
-    qsort(curr_file, num_files, sizeof(const char **), compare);
+    qsort(file_name, num_files, sizeof(const char **), compare);
   }
 
-  int print_error = print((const char **)curr_file, num_files, &l_flag, &f_flag,
-                          &F_flag, &a_flag, &R_flag, &d_flag, &t_flag, &h_flag);
+  data_filling((const char **)file_name, num_files);
+
+  int print_error = print((const char **)file_name, num_files, &l_flag, &f_flag, &F_flag, &a_flag, &R_flag, &d_flag, &t_flag, &h_flag);
   if (print_error == FALSE) {
     closedir(dir_pointer);
-    free(curr_file);
+    free(file_name);
     return (-1);
   }
 
   closedir(dir_pointer);
-  free(curr_file);
+  free(file_name);
 
   return (0);
 }
