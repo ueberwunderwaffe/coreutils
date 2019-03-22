@@ -34,9 +34,14 @@ struct file_data {
 int compare(const void *, const void *);
 int flags(int, char **, int *, int *, int *, int *, int *, int *, int *, int *);
 int data_filling(const char **, int);
-long long total(const char **, int, int *, int *);
-int print(const char **, int, int *, int *, int *, int *, int *, int *, int *,
-          int *);
+long long total(const char **, int, int, int);
+int print(const char **, int, char **, int, int, int, int, int, int, int,
+          int);
+int file_management(char *, char **, DIR *,
+                    struct dirent *, char **, int, int,
+                    int, int, int, int, int,
+                    int);
+  
 
 int compare(const void *a, const void *b) {
   char *first = (char *)malloc(strlen(*(char **)a) * sizeof(char));
@@ -103,7 +108,7 @@ int data_filling(const char **file_name, int num_files) {
     int fd = -1;
     fd = open(file_name[i], O_RDONLY, 0);
     if (fd == -1) {
-      printf("[FAILED]: Opening file/directory\n");
+      printf("[FAILED data_filling()]: Opening file/directory\n");
       return (FALSE);
     }
 
@@ -185,7 +190,7 @@ int data_filling(const char **file_name, int num_files) {
     // Group name
     struct group *group_name = getgrgid(st.st_gid);
     strcpy(files[i].group_name, group_name->gr_name);
-    
+
     // Block size
     files[i].block_size = (int)st.st_blksize;
 
@@ -212,8 +217,7 @@ int data_filling(const char **file_name, int num_files) {
   return TRUE;
 }
 
-long long total(const char **file_name, int num_files, int *f_flag,
-                int *a_flag) {
+long long total(const char **file_name, int num_files, int f_flag, int a_flag) {
   struct file_data *files = NULL;
   files = (struct file_data *)malloc(num_files * sizeof(struct file_data));
   if (files == NULL) {
@@ -228,7 +232,7 @@ long long total(const char **file_name, int num_files, int *f_flag,
   int file_blocks = 0;
 
   for (int i = 0; i < num_files; i++) {
-    if (file_name[i][0] != '.' || *f_flag || *a_flag) {
+    if (file_name[i][0] != '.' || f_flag || a_flag) {
       sys_block_size = files[i].block_size;
       file_size = files[i].file_size;
       file_blocks = 0;
@@ -244,16 +248,16 @@ long long total(const char **file_name, int num_files, int *f_flag,
 
   free(files);
 
-  return result * ((sys_block_size/ 512) / 2); // ???
+  return result * ((sys_block_size / 512) / 2); // ???
 }
 
-int print(const char **file_name, int num_files, int *l_flag, int *f_flag,
-          int *F_flag, int *a_flag, int *R_flag, int *d_flag, int *t_flag,
-          int *h_flag) {
-  if (*l_flag) {
-    printf("total %lld\n", total((const char **)file_name, num_files, f_flag, a_flag));
+int print(const char **file_name, int num_files, char **argv,int l_flag, int f_flag,
+          int F_flag, int a_flag, int R_flag, int d_flag, int t_flag,
+          int h_flag) {
+  if (l_flag) {
+    printf("total %lld\n",
+           total((const char **)file_name, num_files, f_flag, a_flag));
   }
-
 
   struct file_data *files = NULL;
   files = (struct file_data *)malloc(num_files * sizeof(struct file_data));
@@ -264,51 +268,53 @@ int print(const char **file_name, int num_files, int *l_flag, int *f_flag,
   }
 
   for (int i = 0; i < num_files; ++i) {
-    struct stat st;
-    int fd = -1;
+    if (file_name[i] != NULL) {
+      struct stat st;
+      int fd = -1;
 
-    fd = open(file_name[i], O_RDONLY, 0);
-    if (fd == -1) {
-      printf("[FAILED]: Opening file/directory\n");
-      return (FALSE);
-    }
-
-    if (fstat(fd, &st)) {
-      printf("[FAILED]: fstat()\n");
-      close(fd);
-      return (FALSE);
-    }
-
-    if (file_name[i][0] != '.' || *f_flag || *a_flag) {
-      if (*l_flag) {
-        printf("%s", files[i].permission);
-        printf(" %4d ", files[i].hard_links);
-        printf("%s ", files[i].user_name);
-        printf("%s ", files[i].group_name);
-        printf("%5lld ", files[i].file_size);
-        printf("%s ", files[i].date);
+      fd = open(file_name[i], O_RDONLY, 0);
+      if (fd == -1) {
+        printf("[FAILED print()]: Opening file/directory\n");
+        return (FALSE);
       }
 
-      // Check if the file is executable
-      if (stat((const char *)file_name[i], &st) == 0 && st.st_mode & S_IXUSR) {
-        if (S_ISDIR(st.st_mode)) {
-          if (*F_flag)
-            printf(BLUE_COLOR "%s" RESET_COLOR "/  ", file_name[i]);
-          else
-            printf(BLUE_COLOR "%s  " RESET_COLOR, file_name[i]);
-        } else {
-          if (*F_flag)
-            printf(YELLOW_COLOR "%s" RESET_COLOR "*  ", file_name[i]);
-          else
-            printf(YELLOW_COLOR "%s  " RESET_COLOR, file_name[i]);
-        }
+      if (fstat(fd, &st)) {
+        printf("[FAILED]: fstat()\n");
         close(fd);
-      } else {
-        printf("%s  ", file_name[i]);
+        return (FALSE);
       }
 
-      if (*l_flag && i != num_files - 1)
-        putchar('\n');
+      if (file_name[i][0] != '.' || f_flag || a_flag) {
+        if (l_flag) {
+          printf("%s", files[i].permission);
+          printf(" %4d ", files[i].hard_links);
+          printf("%s ", files[i].user_name);
+          printf("%s ", files[i].group_name);
+          printf("%5lld ", files[i].file_size);
+          printf("%s ", files[i].date);
+        }
+
+        // Check if the file is executable
+        if (stat((const char *)file_name[i], &st) == 0 && st.st_mode & S_IXUSR) {
+          if (S_ISDIR(st.st_mode)) {
+            if (F_flag)
+              printf(BLUE_COLOR "%s" RESET_COLOR "/  ", file_name[i]);
+            else
+              printf(BLUE_COLOR "%s  " RESET_COLOR, file_name[i]);
+          } else {
+            if (F_flag)
+              printf(YELLOW_COLOR "%s" RESET_COLOR "*  ", file_name[i]);
+            else
+              printf(YELLOW_COLOR "%s  " RESET_COLOR, file_name[i]);
+          }
+          close(fd);
+        } else {
+          printf("%s  ", file_name[i]);
+        }
+
+        if (l_flag && i != num_files - 1)
+          putchar('\n');
+      }
     }
   }
   putchar('\n');
@@ -318,21 +324,10 @@ int print(const char **file_name, int num_files, int *l_flag, int *f_flag,
   return (TRUE);
 }
 
-int main(int argc, char **argv) {
-  char *curr_dir = NULL;
-  char **file_name = NULL;
-  DIR *dir_pointer = NULL;
-  struct dirent *dir_content = NULL;
-
-  struct winsize w;
-  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-
-  curr_dir = getenv("PWD");
-  if (curr_dir == NULL) {
-    printf("[ERROR]: Couldn't get the directory\n");
-    return (-1);
-  }
-
+int file_management(char * curr_dir, char **file_name, DIR *dir_pointer,
+                    struct dirent *dir_content, char ** argv, int l_flag, int f_flag,
+                    int F_flag, int a_flag, int R_flag, int d_flag, int t_flag,
+                    int h_flag) {
   int num_files = 0;
   dir_pointer = opendir((const char *)curr_dir);
   while ((dir_content = readdir(dir_pointer)) != NULL)
@@ -376,6 +371,68 @@ int main(int argc, char **argv) {
   }
   free(dir_content);
 
+  if (f_flag == FALSE) {
+    // Sort in alphabetical order.
+    qsort(file_name, num_files, sizeof(const char **), compare);
+  }
+
+  data_filling((const char **)file_name, num_files);
+
+  int print_error = print((const char **)file_name, num_files, argv, l_flag, f_flag,
+                          F_flag, a_flag, R_flag, d_flag, t_flag, h_flag);
+  if (print_error == FALSE) {
+    printf("[FAILED]: print()\n");
+    closedir(dir_pointer);
+    free(file_name);
+    return FALSE;
+  }
+
+  if (R_flag) {
+    for (int i = 0; i < num_files; ++i) {
+      struct stat st;
+      int fd = -1;
+
+      fd = open(file_name[i], O_RDONLY, 0);
+      if (fd == -1) {
+        printf("[FAILED file_management()]: Opening file/directory\n");
+        return (FALSE);
+      }
+
+      if (fstat(fd, &st)) {
+        printf("[FAILED]: fstat()\n");
+        close(fd);
+        return (FALSE);
+      }
+
+      if (file_name[i][0] != '.' || f_flag || a_flag) {
+        if (S_ISDIR(st.st_mode)) {
+          strcat(curr_dir, "/");
+          strcat(curr_dir, file_name[i]);
+
+          file_name = NULL;
+          dir_pointer = NULL;
+          dir_content = NULL;
+
+          file_management(curr_dir, file_name, dir_pointer, dir_content, argv, l_flag, f_flag, F_flag, a_flag, R_flag, d_flag, t_flag, h_flag);
+        }
+      }
+
+      close(fd);
+    }
+  }
+
+  return (TRUE);
+}
+
+int main(int argc, char **argv) {
+  char *curr_dir = NULL;
+  char **file_name = NULL;
+  DIR *dir_pointer = NULL;
+  struct dirent *dir_content = NULL;
+
+  struct winsize w;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
   int l_flag = FALSE; // long format, displaying Unix file types, permissions,
                       // number of hard links, owner, group, size,
                       // last-modified date and filename.
@@ -407,20 +464,25 @@ int main(int argc, char **argv) {
   if (flag_error == FALSE) {
     closedir(dir_pointer);
     free(file_name);
+    free(curr_dir);
+    free(dir_content);
     return (-1);
   }
 
-  if (f_flag == FALSE) {
-    // Sort in alphabetical order.
-    qsort(file_name, num_files, sizeof(const char **), compare);
+  curr_dir = getenv("PWD");
+  if (curr_dir == NULL) {
+    printf("[ERROR]: Couldn't get the directory\n");
+    return (-1);
   }
 
-  data_filling((const char **)file_name, num_files);
-
-  int print_error = print((const char **)file_name, num_files, &l_flag, &f_flag, &F_flag, &a_flag, &R_flag, &d_flag, &t_flag, &h_flag);
-  if (print_error == FALSE) {
+  int file_management_error = file_management(curr_dir, file_name, dir_pointer, dir_content, argv, l_flag, f_flag,
+                  F_flag, a_flag, R_flag, d_flag, t_flag, h_flag);
+  if (file_management_error == FALSE) {
+    printf("[FAILED]: file_management()\n");
     closedir(dir_pointer);
     free(file_name);
+    free(curr_dir);
+    free(dir_content);
     return (-1);
   }
 
