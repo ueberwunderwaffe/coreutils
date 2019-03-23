@@ -31,17 +31,40 @@ struct file_data {
   char date[SIZE];
 };
 
+struct command_flags {
+  int l_flag; // long format, displaying Unix file types, permissions,
+              // number of hard links, owner, group, size,
+              // last-modified date and filename.
+
+  int f_flag; // do not sort. Useful for directories containing large
+              // numbers of files.
+
+  int F_flag; // appends a character revealing the nature of a file,
+              // for example, * for an executable, or / for a
+              // directory. Regular files have no suffix.
+
+  int a_flag; // lists all files in the given directory,
+              // including those whose names start with "."
+              // (which are hidden files in Unix).
+
+  int R_flag; // recursively lists subdirectories.
+
+  int d_flag; // shows information about a symbolic link or directory,
+              // rather than about the link's target or listing the
+              // contents of a directory.
+
+  int t_flag; // sort the list of files by modification time.
+
+  int h_flag; // print sizes in human readable format. [This option is
+              // not part of the POSIX standard]
+} flags;
+
 int compare(const void *, const void *);
-int flags(int, char **, int *, int *, int *, int *, int *, int *, int *, int *);
-int data_filling(const char **, int);
-long long total(const char **, int, int, int);
-int print(const char **, int, char **, int, int, int, int, int, int, int,
-          int);
-int file_management(char *, char **, DIR *,
-                    struct dirent *, char **, int, int,
-                    int, int, int, int, int,
-                    int);
-  
+int set_flags(int, char **);
+int data_filling(const char *, const char **, int);
+long long total(const char **, int);
+int print(const char *, const char **, int);
+int file_management(char *, char **, DIR *, struct dirent *);
 
 int compare(const void *a, const void *b) {
   char *first = (char *)malloc(strlen(*(char **)a) * sizeof(char));
@@ -63,27 +86,26 @@ int compare(const void *a, const void *b) {
   return (result);
 }
 
-int flags(int argc, char **argv, int *l_flag, int *f_flag, int *F_flag,
-          int *a_flag, int *R_flag, int *d_flag, int *t_flag, int *h_flag) {
+int set_flags(int argc, char **argv) {
   for (int i = 1; i < argc; i++) {
     if (argv[i][0] == '-') {
       if (argv[i][1] == 'l' && argv[i][2] == '\0') {
-        *l_flag = TRUE;
+        flags.l_flag = TRUE;
       } else if (argv[i][1] == 'f' && argv[i][2] == '\0') {
-        *a_flag = TRUE;
-        *f_flag = TRUE;
+        flags.a_flag = TRUE;
+        flags.f_flag = TRUE;
       } else if (argv[i][1] == 'F' && argv[i][2] == '\0') {
-        *F_flag = TRUE;
+        flags.F_flag = TRUE;
       } else if (argv[i][1] == 'a' && argv[i][2] == '\0') {
-        *a_flag = TRUE;
+        flags.a_flag = TRUE;
       } else if (argv[i][1] == 'R' && argv[i][2] == '\0') {
-        *R_flag = TRUE;
+        flags.R_flag = TRUE;
       } else if (argv[i][1] == 'd' && argv[i][2] == '\0') {
-        *d_flag = TRUE;
+        flags.d_flag = TRUE;
       } else if (argv[i][1] == 't' && argv[i][2] == '\0') {
-        *t_flag = TRUE;
+        flags.t_flag = TRUE;
       } else if (argv[i][1] == 'h' && argv[i][2] == '\0') {
-        *h_flag = TRUE;
+        flags.h_flag = TRUE;
       }
     } else {
       printf("ls: cannot access '%s': No such file or directory\n", argv[i]);
@@ -94,7 +116,7 @@ int flags(int argc, char **argv, int *l_flag, int *f_flag, int *F_flag,
   return (TRUE);
 }
 
-int data_filling(const char **file_name, int num_files) {
+int data_filling(const char *curr_dir, const char **file_name, int num_files) {
   struct file_data *files = NULL;
   files = (struct file_data *)malloc(sizeof(struct file_data) * num_files);
   if (files == NULL) {
@@ -106,11 +128,20 @@ int data_filling(const char **file_name, int num_files) {
   for (int i = 0; i < num_files; ++i) {
     struct stat st;
     int fd = -1;
-    fd = open(file_name[i], O_RDONLY, 0);
+
+    char *address = (char *)malloc(sizeof(char) * SIZE);
+    memset(address, 0, sizeof(char));
+    strcat(address, curr_dir);
+    strcat(address, "/");
+    strcat(address, file_name[i]);
+
+    fd = open(address, O_RDONLY, 0);
     if (fd == -1) {
       printf("[FAILED data_filling()]: Opening file/directory\n");
+      free(address);
       return (FALSE);
     }
+    free(address);
 
     if (fstat(fd, &st)) {
       printf("[FAILED]: fstat()\n");
@@ -217,7 +248,7 @@ int data_filling(const char **file_name, int num_files) {
   return TRUE;
 }
 
-long long total(const char **file_name, int num_files, int f_flag, int a_flag) {
+long long total(const char **file_name, int num_files) {
   struct file_data *files = NULL;
   files = (struct file_data *)malloc(num_files * sizeof(struct file_data));
   if (files == NULL) {
@@ -232,7 +263,7 @@ long long total(const char **file_name, int num_files, int f_flag, int a_flag) {
   int file_blocks = 0;
 
   for (int i = 0; i < num_files; i++) {
-    if (file_name[i][0] != '.' || f_flag || a_flag) {
+    if (file_name[i][0] != '.' || flags.f_flag || flags.a_flag) {
       sys_block_size = files[i].block_size;
       file_size = files[i].file_size;
       file_blocks = 0;
@@ -251,12 +282,9 @@ long long total(const char **file_name, int num_files, int f_flag, int a_flag) {
   return result * ((sys_block_size / 512) / 2); // ???
 }
 
-int print(const char **file_name, int num_files, char **argv,int l_flag, int f_flag,
-          int F_flag, int a_flag, int R_flag, int d_flag, int t_flag,
-          int h_flag) {
-  if (l_flag) {
-    printf("total %lld\n",
-           total((const char **)file_name, num_files, f_flag, a_flag));
+int print(const char *curr_dir, const char **file_name, int num_files) {
+  if (flags.l_flag) {
+    printf("total %lld\n", total((const char **)file_name, num_files));
   }
 
   struct file_data *files = NULL;
@@ -272,11 +300,19 @@ int print(const char **file_name, int num_files, char **argv,int l_flag, int f_f
       struct stat st;
       int fd = -1;
 
-      fd = open(file_name[i], O_RDONLY, 0);
+      char *address = (char *)malloc(sizeof(char) * SIZE);
+      memset(address, 0, sizeof(char));
+      strcat(address, curr_dir);
+      strcat(address, "/");
+      strcat(address, file_name[i]);
+
+      fd = open(address, O_RDONLY, 0);
       if (fd == -1) {
         printf("[FAILED print()]: Opening file/directory\n");
+        free(address);
         return (FALSE);
       }
+      free(address);
 
       if (fstat(fd, &st)) {
         printf("[FAILED]: fstat()\n");
@@ -284,8 +320,8 @@ int print(const char **file_name, int num_files, char **argv,int l_flag, int f_f
         return (FALSE);
       }
 
-      if (file_name[i][0] != '.' || f_flag || a_flag) {
-        if (l_flag) {
+      if (file_name[i][0] != '.' || flags.f_flag || flags.a_flag) {
+        if (flags.l_flag) {
           printf("%s", files[i].permission);
           printf(" %4d ", files[i].hard_links);
           printf("%s ", files[i].user_name);
@@ -295,14 +331,15 @@ int print(const char **file_name, int num_files, char **argv,int l_flag, int f_f
         }
 
         // Check if the file is executable
-        if (stat((const char *)file_name[i], &st) == 0 && st.st_mode & S_IXUSR) {
+        if (stat((const char *)file_name[i], &st) == 0 &&
+            st.st_mode & S_IXUSR) {
           if (S_ISDIR(st.st_mode)) {
-            if (F_flag)
+            if (flags.F_flag)
               printf(BLUE_COLOR "%s" RESET_COLOR "/  ", file_name[i]);
             else
               printf(BLUE_COLOR "%s  " RESET_COLOR, file_name[i]);
           } else {
-            if (F_flag)
+            if (flags.F_flag)
               printf(YELLOW_COLOR "%s" RESET_COLOR "*  ", file_name[i]);
             else
               printf(YELLOW_COLOR "%s  " RESET_COLOR, file_name[i]);
@@ -312,7 +349,7 @@ int print(const char **file_name, int num_files, char **argv,int l_flag, int f_f
           printf("%s  ", file_name[i]);
         }
 
-        if (l_flag && i != num_files - 1)
+        if (flags.l_flag && i != num_files - 1)
           putchar('\n');
       }
     }
@@ -324,10 +361,8 @@ int print(const char **file_name, int num_files, char **argv,int l_flag, int f_f
   return (TRUE);
 }
 
-int file_management(char * curr_dir, char **file_name, DIR *dir_pointer,
-                    struct dirent *dir_content, char ** argv, int l_flag, int f_flag,
-                    int F_flag, int a_flag, int R_flag, int d_flag, int t_flag,
-                    int h_flag) {
+int file_management(char *curr_dir, char **file_name, DIR *dir_pointer,
+                    struct dirent *dir_content) {
   int num_files = 0;
   dir_pointer = opendir((const char *)curr_dir);
   while ((dir_content = readdir(dir_pointer)) != NULL)
@@ -353,7 +388,7 @@ int file_management(char * curr_dir, char **file_name, DIR *dir_pointer,
       free(dir_content);
       closedir(dir_pointer);
 
-      return (-1);
+      return (FALSE);
     }
   }
 
@@ -363,7 +398,7 @@ int file_management(char * curr_dir, char **file_name, DIR *dir_pointer,
     closedir(dir_pointer);
     free(dir_content);
     free(file_name);
-    return (-1);
+    return (FALSE);
   }
 
   for (int i = 0; (dir_content = readdir(dir_pointer)) != NULL; ++i) {
@@ -371,15 +406,15 @@ int file_management(char * curr_dir, char **file_name, DIR *dir_pointer,
   }
   free(dir_content);
 
-  if (f_flag == FALSE) {
+  if (flags.f_flag == FALSE) {
     // Sort in alphabetical order.
     qsort(file_name, num_files, sizeof(const char **), compare);
   }
 
-  data_filling((const char **)file_name, num_files);
+  data_filling((const char *)curr_dir, (const char **)file_name, num_files);
 
-  int print_error = print((const char **)file_name, num_files, argv, l_flag, f_flag,
-                          F_flag, a_flag, R_flag, d_flag, t_flag, h_flag);
+  int print_error =
+      print((const char *)curr_dir, (const char **)file_name, num_files);
   if (print_error == FALSE) {
     printf("[FAILED]: print()\n");
     closedir(dir_pointer);
@@ -387,16 +422,23 @@ int file_management(char * curr_dir, char **file_name, DIR *dir_pointer,
     return FALSE;
   }
 
-  if (R_flag) {
+  if (flags.R_flag) {
     for (int i = 0; i < num_files; ++i) {
       struct stat st;
       int fd = -1;
 
-      fd = open(file_name[i], O_RDONLY, 0);
+      char *address = (char *)malloc(sizeof(char) * SIZE);
+      memset(address, 0, sizeof(char));
+      strcat(address, curr_dir);
+      strcat(address, "/");
+      strcat(address, file_name[i]);
+
+      fd = open(address, O_RDONLY, 0);
       if (fd == -1) {
         printf("[FAILED file_management()]: Opening file/directory\n");
         return (FALSE);
       }
+      free(address);
 
       if (fstat(fd, &st)) {
         printf("[FAILED]: fstat()\n");
@@ -404,7 +446,7 @@ int file_management(char * curr_dir, char **file_name, DIR *dir_pointer,
         return (FALSE);
       }
 
-      if (file_name[i][0] != '.' || f_flag || a_flag) {
+      if (file_name[i][0] != '.' || flags.f_flag || flags.a_flag) {
         if (S_ISDIR(st.st_mode)) {
           strcat(curr_dir, "/");
           strcat(curr_dir, file_name[i]);
@@ -413,13 +455,22 @@ int file_management(char * curr_dir, char **file_name, DIR *dir_pointer,
           dir_pointer = NULL;
           dir_content = NULL;
 
-          file_management(curr_dir, file_name, dir_pointer, dir_content, argv, l_flag, f_flag, F_flag, a_flag, R_flag, d_flag, t_flag, h_flag);
+          int error =
+              file_management(curr_dir, file_name, dir_pointer, dir_content);
+          if (error == FALSE) {
+            printf("[ERROR]: file_management()");
+            closedir(dir_pointer);
+            close(fd);
+          } else {
+            break;
+          }
         }
       }
-
       close(fd);
     }
   }
+
+  closedir(dir_pointer);
 
   return (TRUE);
 }
@@ -433,34 +484,16 @@ int main(int argc, char **argv) {
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
-  int l_flag = FALSE; // long format, displaying Unix file types, permissions,
-                      // number of hard links, owner, group, size,
-                      // last-modified date and filename.
+  flags.l_flag = FALSE;
+  flags.f_flag = FALSE;
+  flags.F_flag = FALSE;
+  flags.a_flag = FALSE;
+  flags.R_flag = FALSE;
+  flags.d_flag = FALSE;
+  flags.t_flag = FALSE;
+  flags.h_flag = FALSE;
 
-  int f_flag = FALSE; // do not sort. Useful for directories containing large
-                      // numbers of files.
-
-  int F_flag = FALSE; // appends a character revealing the nature of a file, for
-                      // example, * for an executable, or / for a directory.
-                      // Regular files have no suffix.
-
-  int a_flag = FALSE; // lists all files in the given directory,
-                      // including those whose names start with "."
-                      // (which are hidden files in Unix).
-
-  int R_flag = FALSE; // recursively lists subdirectories.
-
-  int d_flag = FALSE; // shows information about a symbolic link or directory,
-                      // rather than about the link's target or listing the
-                      // contents of a directory.
-
-  int t_flag = FALSE; // sort the list of files by modification time.
-
-  int h_flag = FALSE; // print sizes in human readable format. [This option is
-                      // not part of the POSIX standard]
-
-  int flag_error = flags(argc, argv, &l_flag, &f_flag, &F_flag, &a_flag,
-                         &R_flag, &d_flag, &t_flag, &h_flag);
+  int flag_error = set_flags(argc, argv);
   if (flag_error == FALSE) {
     closedir(dir_pointer);
     free(file_name);
@@ -475,8 +508,8 @@ int main(int argc, char **argv) {
     return (-1);
   }
 
-  int file_management_error = file_management(curr_dir, file_name, dir_pointer, dir_content, argv, l_flag, f_flag,
-                  F_flag, a_flag, R_flag, d_flag, t_flag, h_flag);
+  int file_management_error =
+      file_management(curr_dir, file_name, dir_pointer, dir_content);
   if (file_management_error == FALSE) {
     printf("[FAILED]: file_management()\n");
     closedir(dir_pointer);
