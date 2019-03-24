@@ -296,63 +296,61 @@ int print(const char *curr_dir, const char **file_name, int num_files) {
   }
 
   for (int i = 0; i < num_files; ++i) {
-    if (file_name[i] != NULL) {
-      struct stat st;
-      int fd = -1;
+    struct stat st;
+    int fd = -1;
 
-      char *address = (char *)malloc(sizeof(char) * SIZE);
-      memset(address, 0, sizeof(char));
-      strcat(address, curr_dir);
-      strcat(address, "/");
-      strcat(address, file_name[i]);
+    char *address = (char *)malloc(sizeof(char) * SIZE);
+    memset(address, 0, sizeof(char));
+    strcat(address, curr_dir);
+    strcat(address, "/");
+    strcat(address, file_name[i]);
 
-      fd = open(address, O_RDONLY, 0);
-      if (fd == -1) {
-        printf("[FAILED print()]: Opening file/directory\n");
-        free(address);
-        return (FALSE);
-      }
+    fd = open(address, O_RDONLY, 0);
+    if (fd == -1) {
+      printf("[FAILED print()]: Opening file/directory\n");
       free(address);
-
-      if (fstat(fd, &st)) {
-        printf("[FAILED]: fstat()\n");
-        close(fd);
-        return (FALSE);
-      }
-
-      if (file_name[i][0] != '.' || flags.f_flag || flags.a_flag) {
-        if (flags.l_flag) {
-          printf("%s", files[i].permission);
-          printf(" %4d ", files[i].hard_links);
-          printf("%s ", files[i].user_name);
-          printf("%s ", files[i].group_name);
-          printf("%5lld ", files[i].file_size);
-          printf("%s ", files[i].date);
-        }
-
-        // Check if the file is executable
-        if (stat((const char *)file_name[i], &st) == 0 &&
-            st.st_mode & S_IXUSR) {
-          if (S_ISDIR(st.st_mode)) {
-            if (flags.F_flag)
-              printf(BLUE_COLOR "%s" RESET_COLOR "/  ", file_name[i]);
-            else
-              printf(BLUE_COLOR "%s  " RESET_COLOR, file_name[i]);
-          } else {
-            if (flags.F_flag)
-              printf(YELLOW_COLOR "%s" RESET_COLOR "*  ", file_name[i]);
-            else
-              printf(YELLOW_COLOR "%s  " RESET_COLOR, file_name[i]);
-          }
-          close(fd);
-        } else {
-          printf("%s  ", file_name[i]);
-        }
-
-        if (flags.l_flag && i != num_files - 1)
-          putchar('\n');
-      }
+      return (FALSE);
     }
+
+    if (fstat(fd, &st)) {
+      printf("[FAILED]: fstat()\n");
+      close(fd);
+      return (FALSE);
+    }
+
+    if (file_name[i][0] != '.' || flags.f_flag || flags.a_flag) {
+      if (flags.l_flag) {
+        printf("%s", files[i].permission);
+        printf(" %4d ", files[i].hard_links);
+        printf("%s ", files[i].user_name);
+        printf("%s ", files[i].group_name);
+        printf("%5lld ", files[i].file_size);
+        printf("%s ", files[i].date);
+      }
+
+      // Check if the file is executable
+      if (stat((const char *)address, &st) == 0 && st.st_mode & S_IXUSR) {
+        if (S_ISDIR(st.st_mode)) {
+          if (flags.F_flag)
+            printf(BLUE_COLOR "%s" RESET_COLOR "/  ", file_name[i]);
+          else
+            printf(BLUE_COLOR "%s  " RESET_COLOR, file_name[i]);
+        } else {
+          if (flags.F_flag)
+            printf(YELLOW_COLOR "%s" RESET_COLOR "*  ", file_name[i]);
+          else
+            printf(YELLOW_COLOR "%s  " RESET_COLOR, file_name[i]);
+        }
+        close(fd);
+      } else {
+        printf("%s  ", file_name[i]);
+      }
+
+      if (flags.l_flag && i != num_files - 1)
+        putchar('\n');
+    }
+
+    free(address);
   }
   putchar('\n');
 
@@ -438,7 +436,6 @@ int file_management(char *curr_dir, char **file_name, DIR *dir_pointer,
         printf("[FAILED file_management()]: Opening file/directory\n");
         return (FALSE);
       }
-      free(address);
 
       if (fstat(fd, &st)) {
         printf("[FAILED]: fstat()\n");
@@ -446,23 +443,34 @@ int file_management(char *curr_dir, char **file_name, DIR *dir_pointer,
         return (FALSE);
       }
 
+      if (S_ISDIR(st.st_mode) && file_name[i][0] != '.')
+        printf("\n.%s:\n", address);
+      free(address);
+
       if (file_name[i][0] != '.' || flags.f_flag || flags.a_flag) {
         if (S_ISDIR(st.st_mode)) {
-          strcat(curr_dir, "/");
-          strcat(curr_dir, file_name[i]);
+          char *new_curr_dir = (char *)malloc(sizeof(char) * SIZE);
+          memset(new_curr_dir, 0, sizeof(char));
+          strcat(new_curr_dir, curr_dir);
+          strcat(new_curr_dir, "/");
+          strcat(new_curr_dir, file_name[i]);
 
-          file_name = NULL;
+          char **new_file_name = NULL;
           dir_pointer = NULL;
           dir_content = NULL;
 
-          int error =
-              file_management(curr_dir, file_name, dir_pointer, dir_content);
+          int error = file_management(new_curr_dir, new_file_name, dir_pointer,
+                                      dir_content);
           if (error == FALSE) {
             printf("[ERROR]: file_management()");
             closedir(dir_pointer);
+            free(new_file_name);
+            free(new_curr_dir);
             close(fd);
+            return (FALSE);
           } else {
-            break;
+            free(new_file_name);
+            free(new_curr_dir);
           }
         }
       }
