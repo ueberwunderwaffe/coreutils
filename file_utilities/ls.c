@@ -120,31 +120,41 @@ int data_filling(const char *curr_dir, const char **file_name, int num_files) {
   struct file_data *files = NULL;
   files = (struct file_data *)malloc(sizeof(struct file_data) * num_files);
   if (files == NULL) {
-    printf("[FAILED]: Memory allocation\n");
+    printf("[FAILED data_filling()]: Memory allocation\n");
     free(files);
-    return FALSE;
+    return (FALSE);
+  }
+
+  char *path = NULL;
+  path = (char *)malloc(sizeof(char) * SIZE);
+  if (path == NULL) {
+    printf("[FAILED data_filling()]: Memory allocation\n");
+    free(files);
+    free(path);
+    return (FALSE);
   }
 
   for (int i = 0; i < num_files; ++i) {
     struct stat st;
     int fd = -1;
 
-    char *address = (char *)malloc(sizeof(char) * SIZE);
-    memset(address, 0, sizeof(char));
-    strcat(address, curr_dir);
-    strcat(address, "/");
-    strcat(address, file_name[i]);
+    memset(path, 0, sizeof(char) * SIZE);
+    strcat(path, curr_dir);
+    strcat(path, "/");
+    strcat(path, file_name[i]);
 
-    fd = open(address, O_RDONLY, 0);
+    fd = open(path, O_RDONLY, 0);
     if (fd == -1) {
       printf("[FAILED data_filling()]: Opening file/directory\n");
-      free(address);
+      free(files);
+      free(path);
       return (FALSE);
     }
-    free(address);
 
     if (fstat(fd, &st)) {
-      printf("[FAILED]: fstat()\n");
+      printf("[FAILED data_filling()]: fstat()\n");
+      free(files);
+      free(path);
       close(fd);
       return (FALSE);
     }
@@ -230,7 +240,7 @@ int data_filling(const char *curr_dir, const char **file_name, int num_files) {
 
     // Date and time
     char date[SIZE];
-    memset(date, 0, sizeof(date));
+    memset(date, 0, sizeof(char) * SIZE);
     strcpy(date, ctime(&st.st_ctime));
     for (int i = 0; date[i] != '\0'; i++) {
       if (date[i] == '\n') {
@@ -244,6 +254,7 @@ int data_filling(const char *curr_dir, const char **file_name, int num_files) {
   }
 
   free(files);
+  free(path);
 
   return TRUE;
 }
@@ -252,9 +263,9 @@ long long total(const char **file_name, int num_files) {
   struct file_data *files = NULL;
   files = (struct file_data *)malloc(num_files * sizeof(struct file_data));
   if (files == NULL) {
-    printf("[FAILED]: Memory allocation\n");
+    printf("[FAILED total()]: Memory allocation\n");
     free(files);
-    return FALSE;
+    return (FALSE);
   }
 
   long long result = 0;
@@ -290,34 +301,46 @@ int print(const char *curr_dir, const char **file_name, int num_files) {
   struct file_data *files = NULL;
   files = (struct file_data *)malloc(num_files * sizeof(struct file_data));
   if (files == NULL) {
-    printf("[FAILED]: Memory allocation\n");
+    printf("[FAILED print()]: Memory allocation\n");
     free(files);
-    return FALSE;
+    return (FALSE);
+  }
+
+  char *path = NULL;
+  path = (char *)malloc(sizeof(char) * SIZE);
+  if (path == NULL) {
+    printf("[FAILED print()]: Memory allocation\n");
+    free(files);
+    free(path);
+    return (FALSE);
   }
 
   for (int i = 0; i < num_files; ++i) {
     struct stat st;
     int fd = -1;
 
-    char *address = (char *)malloc(sizeof(char) * SIZE);
-    memset(address, 0, sizeof(char));
-    strcat(address, curr_dir);
-    strcat(address, "/");
-    strcat(address, file_name[i]);
+    memset(path, 0, sizeof(char) * SIZE);
+    strcat(path, curr_dir);
+    strcat(path, "/");
+    strcat(path, file_name[i]);
 
-    fd = open(address, O_RDONLY, 0);
+    fd = open(path, O_RDONLY, 0);
     if (fd == -1) {
       printf("[FAILED print()]: Opening file/directory\n");
-      free(address);
+      free(files);
+      free(path);
       return (FALSE);
     }
 
     if (fstat(fd, &st)) {
-      printf("[FAILED]: fstat()\n");
+      printf("[FAILED printf()]: fstat()\n");
+      free(files);
+      free(path);
       close(fd);
       return (FALSE);
     }
 
+    // ROW SIZE
     if (file_name[i][0] != '.' || flags.f_flag || flags.a_flag) {
       if (flags.l_flag) {
         printf("%s", files[i].permission);
@@ -329,7 +352,7 @@ int print(const char *curr_dir, const char **file_name, int num_files) {
       }
 
       // Check if the file is executable
-      if (stat((const char *)address, &st) == 0 && st.st_mode & S_IXUSR) {
+      if (stat((const char *)path, &st) == 0 && st.st_mode & S_IXUSR) {
         if (S_ISDIR(st.st_mode)) {
           if (flags.F_flag)
             printf(BLUE_COLOR "%s" RESET_COLOR "/  ", file_name[i]);
@@ -349,11 +372,10 @@ int print(const char *curr_dir, const char **file_name, int num_files) {
       if (flags.l_flag && i != num_files - 1)
         putchar('\n');
     }
-
-    free(address);
   }
   putchar('\n');
 
+  free(path);
   free(files);
 
   return (TRUE);
@@ -371,14 +393,40 @@ int file_management(char *curr_dir, char **file_name, DIR *dir_pointer,
   dir_content = NULL;
 
   if (num_files == 0) {
-    return (0);
+    return (TRUE);
   } else {
-    file_name = (char **)malloc(num_files * sizeof(char));
-    for (int i = 0; i < num_files; i++)
+    file_name = (char **)malloc(num_files * sizeof(char *));
+    if (file_name == NULL) {
+      printf("[FAILED file_management()]: Memory allocation\n");
+
+      for (int i = 0; i < num_files; i++)
+        free(file_name[i]);
+      free(file_name);
+      free(dir_content);
+      closedir(dir_pointer);
+
+      return (FALSE);
+    }
+
+    for (int i = 0; i < num_files; i++) {
+      file_name[i] = NULL;
       file_name[i] = (char *)malloc(SIZE * sizeof(char));
 
+      if (file_name[i] == NULL) {
+        printf("[FAILED file_management()]: Memory allocation\n");
+
+        for (int j = 0; j < i; j++)
+          free(file_name[j]);
+        free(file_name);
+        free(dir_content);
+        closedir(dir_pointer);
+
+        return (FALSE);
+      }
+    }
+
     if (file_name == NULL) {
-      printf("[FAILED]: Memory allocation\n");
+      printf("[FAILED file_management()]: Memory allocation\n");
 
       for (int i = 0; i < num_files; i++)
         free(file_name[i]);
@@ -392,15 +440,17 @@ int file_management(char *curr_dir, char **file_name, DIR *dir_pointer,
 
   dir_pointer = opendir((const char *)curr_dir);
   if (dir_pointer == NULL) {
-    printf("[ERROR]: Couldn't open the directory");
+    printf("[ERROR file_management()]: Couldn't open the directory");
     closedir(dir_pointer);
     free(dir_content);
+    for (int i = 0; i < num_files; i++)
+      free(file_name[i]);
     free(file_name);
     return (FALSE);
   }
 
   for (int i = 0; (dir_content = readdir(dir_pointer)) != NULL; ++i) {
-    file_name[i] = dir_content->d_name;
+    strcpy(file_name[i], dir_content->d_name);
   }
   free(dir_content);
 
@@ -409,48 +459,92 @@ int file_management(char *curr_dir, char **file_name, DIR *dir_pointer,
     qsort(file_name, num_files, sizeof(const char **), compare);
   }
 
-  data_filling((const char *)curr_dir, (const char **)file_name, num_files);
+  int data_filling_error =
+      data_filling((const char *)curr_dir, (const char **)file_name, num_files);
+  if (data_filling_error == FALSE) {
+    printf("[FAILED file_management()]: data_filling()\n");
+    closedir(dir_pointer);
+    for (int i = 0; i < num_files; i++)
+      free(file_name[i]);
+    free(file_name);
+    return (FALSE);
+  }
 
   int print_error =
       print((const char *)curr_dir, (const char **)file_name, num_files);
   if (print_error == FALSE) {
-    printf("[FAILED]: print()\n");
+    printf("[FAILED file_management()]: print()\n");
     closedir(dir_pointer);
+    for (int i = 0; i < num_files; i++)
+      free(file_name[i]);
     free(file_name);
-    return FALSE;
+    return (FALSE);
   }
 
   if (flags.R_flag) {
+    char *path = NULL;
+    path = (char *)malloc(sizeof(char) * SIZE);
+    if (path == NULL) {
+      printf("[FAILED file_management()]: Memory allocation\n");
+      closedir(dir_pointer);
+      for (int i = 0; i < num_files; i++)
+        free(file_name[i]);
+      free(file_name);
+      free(path);
+
+      return (FALSE);
+    }
+
+    char *new_curr_dir = NULL;
+    new_curr_dir = (char *)malloc(sizeof(char) * SIZE);
+    if (new_curr_dir == NULL) {
+      printf("[FAILED file_management()]: Memory allocation\n");
+      closedir(dir_pointer);
+      for (int i = 0; i < num_files; i++)
+        free(file_name[i]);
+      free(file_name);
+      free(path);
+
+      return (FALSE);
+    }
+
     for (int i = 0; i < num_files; ++i) {
       struct stat st;
       int fd = -1;
 
-      char *address = (char *)malloc(sizeof(char) * SIZE);
-      memset(address, 0, sizeof(char));
-      strcat(address, curr_dir);
-      strcat(address, "/");
-      strcat(address, file_name[i]);
+      memset(path, 0, sizeof(char) * SIZE);
+      strcat(path, curr_dir);
+      strcat(path, "/");
+      strcat(path, file_name[i]);
 
-      fd = open(address, O_RDONLY, 0);
+      fd = open(path, O_RDONLY, 0);
       if (fd == -1) {
         printf("[FAILED file_management()]: Opening file/directory\n");
+        closedir(dir_pointer);
+        for (int i = 0; i < num_files; i++)
+          free(file_name[i]);
+        free(file_name);
+        free(path);
         return (FALSE);
       }
 
       if (fstat(fd, &st)) {
-        printf("[FAILED]: fstat()\n");
+        printf("[FAILED file_management()]: fstat()\n");
+        closedir(dir_pointer);
+        for (int i = 0; i < num_files; i++)
+          free(file_name[i]);
+        free(file_name);
+        free(path);
         close(fd);
         return (FALSE);
       }
 
       if (S_ISDIR(st.st_mode) && file_name[i][0] != '.')
-        printf("\n.%s:\n", address);
-      free(address);
+        printf("\n.%s:\n", path);
 
       if (file_name[i][0] != '.' || flags.f_flag || flags.a_flag) {
         if (S_ISDIR(st.st_mode)) {
-          char *new_curr_dir = (char *)malloc(sizeof(char) * SIZE);
-          memset(new_curr_dir, 0, sizeof(char));
+          memset(new_curr_dir, 0, sizeof(char) * SIZE);
           strcat(new_curr_dir, curr_dir);
           strcat(new_curr_dir, "/");
           strcat(new_curr_dir, file_name[i]);
@@ -462,23 +556,34 @@ int file_management(char *curr_dir, char **file_name, DIR *dir_pointer,
           int error = file_management(new_curr_dir, new_file_name, dir_pointer,
                                       dir_content);
           if (error == FALSE) {
-            printf("[ERROR]: file_management()");
+            printf("[ERROR file_management()]: file_management()");
             closedir(dir_pointer);
-            free(new_file_name);
-            free(new_curr_dir);
             close(fd);
+
+            for (int i = 0; i < num_files; i++)
+              free(file_name[i]);
+            free(file_name);
+            free(new_file_name);
+
             return (FALSE);
           } else {
             free(new_file_name);
-            free(new_curr_dir);
           }
         }
       }
+
       close(fd);
     }
+
+    free(path);
+    free(new_curr_dir);
   }
 
   closedir(dir_pointer);
+
+  for (int i = 0; i < num_files; i++)
+    free(file_name[i]);
+  free(file_name);
 
   return (TRUE);
 }
@@ -503,6 +608,7 @@ int main(int argc, char **argv) {
 
   int flag_error = set_flags(argc, argv);
   if (flag_error == FALSE) {
+    printf("[ERROR main()]: Couldn't set the flags\n");
     closedir(dir_pointer);
     free(file_name);
     free(curr_dir);
@@ -512,14 +618,14 @@ int main(int argc, char **argv) {
 
   curr_dir = getenv("PWD");
   if (curr_dir == NULL) {
-    printf("[ERROR]: Couldn't get the directory\n");
+    printf("[ERROR main()]: Couldn't get the directory\n");
     return (-1);
   }
 
   int file_management_error =
       file_management(curr_dir, file_name, dir_pointer, dir_content);
   if (file_management_error == FALSE) {
-    printf("[FAILED]: file_management()\n");
+    printf("[FAILED main()]: file_management()\n");
     closedir(dir_pointer);
     free(file_name);
     free(curr_dir);
