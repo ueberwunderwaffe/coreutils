@@ -15,6 +15,8 @@
 #define TRUE 1
 #define FALSE 0
 
+#define ERROR -1
+
 #define SIZE 256
 
 #define YELLOW_COLOR "\e[33;1m"
@@ -60,6 +62,7 @@ struct command_flags {
 } flags;
 
 int compare(const void *, const void *);
+int row_max_width(const char **, const struct file_data *, int, char);
 int set_flags(int, char **);
 int data_filling(const char *, const char **, int);
 long long total(const char **, int);
@@ -84,6 +87,29 @@ int compare(const void *a, const void *b) {
   free(second);
 
   return (result);
+}
+
+int row_max_width(const char **file_name, const struct file_data *files,
+                  int num_files, char mode) {
+  int counter = 0;
+  int size = 0;
+  int value = 0;
+
+  for (int i = 0; i < num_files; i++) {
+    if (file_name[i][0] != '.' || flags.f_flag || flags.a_flag) {
+      counter = 0;
+      value = (mode == 'h') ? files[i].hard_links : files[i].file_size;
+      while (value > 0) {
+        value /= 10;
+        counter++;
+      }
+
+      if (counter > size)
+        size = counter;
+    }
+  }
+
+  return size;
 }
 
 int set_flags(int argc, char **argv) {
@@ -256,7 +282,7 @@ int data_filling(const char *curr_dir, const char **file_name, int num_files) {
   free(files);
   free(path);
 
-  return TRUE;
+  return (TRUE);
 }
 
 long long total(const char **file_name, int num_files) {
@@ -340,14 +366,15 @@ int print(const char *curr_dir, const char **file_name, int num_files) {
       return (FALSE);
     }
 
-    // ROW SIZE
     if (file_name[i][0] != '.' || flags.f_flag || flags.a_flag) {
       if (flags.l_flag) {
         printf("%s", files[i].permission);
-        printf(" %4d ", files[i].hard_links);
+        printf(" %*d ", row_max_width(file_name, files, num_files, 'h'),
+               files[i].hard_links);
         printf("%s ", files[i].user_name);
         printf("%s ", files[i].group_name);
-        printf("%5lld ", files[i].file_size);
+        printf("%*lld ", row_max_width(file_name, files, num_files, 'f'),
+               files[i].file_size);
         printf("%s ", files[i].date);
       }
 
