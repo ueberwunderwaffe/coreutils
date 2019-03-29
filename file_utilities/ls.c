@@ -24,6 +24,7 @@
 #define RESET_COLOR "\e[m"
 
 struct file_data {
+  char name[SIZE];
   char permission[SIZE];
   int hard_links;
   char user_name[SIZE];
@@ -31,7 +32,10 @@ struct file_data {
   int block_size;
   long long file_size;
   char date[SIZE];
+  time_t time;
 };
+
+int num_files_compare_time = -1;
 
 struct command_flags {
   int l_flag; // long format, displaying Unix file types, permissions,
@@ -62,16 +66,31 @@ struct command_flags {
 } flags;
 
 int compare(const void *, const void *);
-int row_max_width(const char **, const struct file_data *, int, char);
+int compare_time(const void *, const void *);
+int column_max_width(const char **, const struct file_data *, int, char);
 int set_flags(int, char **);
+int set_time_and_name(char *, char **, int);
 int data_filling(const char *, const char **, int);
 long long total(const char **, int);
 int print(const char *, const char **, int);
 int file_management(char *, char **, DIR *, struct dirent *);
 
 int compare(const void *a, const void *b) {
-  char *first = (char *)malloc(strlen(*(char **)a) * sizeof(char));
-  char *second = (char *)malloc(strlen(*(char **)b) * sizeof(char));
+  char *first = NULL;
+  first = (char *)malloc(strlen(*(char **)a) * sizeof(char));
+  if (first == NULL) {
+    printf("[FAILED compare()]: Memory allocation\n");
+    free(first);
+    return FALSE;
+  }
+
+  char *second = NULL;
+  second = (char *)malloc(strlen(*(char **)b) * sizeof(char));
+  if (second == NULL) {
+    printf("[FAILED compare()]: Memory allocation\n");
+    free(second);
+    return FALSE;
+  }
 
   strcpy(first, *(char **)a);
   strcpy(second, *(char **)b);
@@ -89,8 +108,39 @@ int compare(const void *a, const void *b) {
   return (result);
 }
 
-int row_max_width(const char **file_name, const struct file_data *files,
-                  int num_files, char mode) {
+int compare_time(const void *a, const void *b) {
+  if (num_files_compare_time == -1) {
+    printf("[FAILED compare_time()]: Variable [num_files_compare_time] isn't "
+           "set\n");
+    return (FALSE);
+  }
+
+  struct file_data *files = NULL;
+  files = (struct file_data *)malloc(num_files_compare_time *
+                                     sizeof(struct file_data));
+  if (files == NULL) {
+    printf("[FAILED compare_time()]: Memory allocation\n");
+    free(files);
+    return (FALSE);
+  }
+
+  int a_index = -1;
+  int b_index = -1;
+
+  for (int i = 0; i < num_files_compare_time; ++i) {
+    if (strcmp(files[i].name, *(char **)a) == 0)
+      a_index = i;
+    else if (strcmp(files[i].name, *(char **)b) == 0)
+      b_index = i;
+  }
+
+  free(files);
+
+  return difftime(files[b_index].time, files[a_index].time);
+}
+
+int column_max_width(const char **file_name, const struct file_data *files,
+                     int num_files, char mode) {
   int counter = 0;
   int size = 0;
   int value = 0;
@@ -138,6 +188,65 @@ int set_flags(int argc, char **argv) {
       return (FALSE);
     }
   }
+
+  return (TRUE);
+}
+
+int set_time_and_name(char *curr_dir, char **file_name, int num_files) {
+  struct file_data *files = NULL;
+  files = (struct file_data *)malloc(num_files_compare_time *
+                                     sizeof(struct file_data));
+  if (files == NULL) {
+    printf("[FAILED set_time_and_name()]: Memory allocation\n");
+    free(files);
+    return (FALSE);
+  }
+
+  char *path = NULL;
+  path = (char *)malloc(sizeof(char) * SIZE);
+  if (path == NULL) {
+    printf("[FAILED set_time_and_name()]: Memory allocation\n");
+    free(files);
+    free(path);
+    return (FALSE);
+  }
+
+  for (int i = 0; i < num_files; ++i) {
+    struct stat st;
+    int fd = -1;
+
+    memset(path, 0, sizeof(char) * SIZE);
+    strcat(path, curr_dir);
+    strcat(path, "/");
+    strcat(path, file_name[i]);
+
+    fd = open(path, O_RDONLY, 0);
+    if (fd == -1) {
+      printf("[FAILED set_time_and_name()]: Opening file/directory\n");
+      free(files);
+      free(path);
+      return (FALSE);
+    }
+
+    if (fstat(fd, &st)) {
+      printf("[FAILED set_time_and_name()]: fstat()\n");
+      free(files);
+      free(path);
+      close(fd);
+      return (FALSE);
+    }
+
+    // File name
+    strcpy(files[i].name, file_name[i]);
+
+    // Time
+    files[i].time = st.st_mtime;
+
+    close(fd);
+  }
+
+  free(files);
+  free(path);
 
   return (TRUE);
 }
@@ -264,7 +373,7 @@ int data_filling(const char *curr_dir, const char **file_name, int num_files) {
     // File size
     files[i].file_size = (long long)st.st_size;
 
-    // Date and time
+    // Date
     char date[SIZE];
     memset(date, 0, sizeof(char) * SIZE);
     strcpy(date, ctime(&st.st_ctime));
@@ -369,11 +478,11 @@ int print(const char *curr_dir, const char **file_name, int num_files) {
     if (file_name[i][0] != '.' || flags.f_flag || flags.a_flag) {
       if (flags.l_flag) {
         printf("%s", files[i].permission);
-        printf(" %*d ", row_max_width(file_name, files, num_files, 'h'),
+        printf(" %*d ", column_max_width(file_name, files, num_files, 'h'),
                files[i].hard_links);
         printf("%s ", files[i].user_name);
         printf("%s ", files[i].group_name);
-        printf("%*lld ", row_max_width(file_name, files, num_files, 'f'),
+        printf("%*lld ", column_max_width(file_name, files, num_files, 'f'),
                files[i].file_size);
         printf("%s ", files[i].date);
       }
@@ -482,8 +591,16 @@ int file_management(char *curr_dir, char **file_name, DIR *dir_pointer,
   free(dir_content);
 
   if (flags.f_flag == FALSE) {
-    // Sort in alphabetical order.
-    qsort(file_name, num_files, sizeof(const char **), compare);
+    if (flags.t_flag == TRUE) {
+      // Sort by modification time.
+      num_files_compare_time = num_files;
+      set_time_and_name(curr_dir, file_name, num_files);
+      qsort(file_name, num_files_compare_time, sizeof(const char **),
+            compare_time);
+    } else {
+      // Sort in alphabetical order.
+      qsort(file_name, num_files, sizeof(const char **), compare);
+    }
   }
 
   int data_filling_error =
