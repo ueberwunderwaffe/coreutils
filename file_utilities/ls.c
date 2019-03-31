@@ -170,17 +170,22 @@ int set_flags(int argc, char **argv) {
       } else if (argv[i][1] == 'f' && argv[i][2] == '\0') {
         flags.a_flag = TRUE;
         flags.f_flag = TRUE;
-      } else if (argv[i][1] == 'F' && argv[i][2] == '\0') {
+      } else if ((argv[i][1] == 'F' && argv[i][2] == '\0') ||
+                 strcmp(argv[i], "--classify") == 0) {
         flags.F_flag = TRUE;
-      } else if (argv[i][1] == 'a' && argv[i][2] == '\0') {
+      } else if ((argv[i][1] == 'a' && argv[i][2] == '\0') ||
+                 strcmp(argv[i], "--all") == 0) {
         flags.a_flag = TRUE;
-      } else if (argv[i][1] == 'R' && argv[i][2] == '\0') {
+      } else if ((argv[i][1] == 'R' && argv[i][2] == '\0') ||
+                 strcmp(argv[i], "--recursive") == 0) {
         flags.R_flag = TRUE;
-      } else if (argv[i][1] == 'd' && argv[i][2] == '\0') {
+      } else if ((argv[i][1] == 'd' && argv[i][2] == '\0') ||
+                 strcmp(argv[i], "--directory") == 0) {
         flags.d_flag = TRUE;
       } else if (argv[i][1] == 't' && argv[i][2] == '\0') {
         flags.t_flag = TRUE;
-      } else if (argv[i][1] == 'h' && argv[i][2] == '\0') {
+      } else if ((argv[i][1] == 'h' && argv[i][2] == '\0') ||
+                 strcmp(argv[i], "--human-readable") == 0) {
         flags.h_flag = TRUE;
       }
     } else {
@@ -430,7 +435,7 @@ long long total(const char **file_name, int num_files) {
 
 int print(const char *curr_dir, const char **file_name, int num_files) {
   if (flags.l_flag) {
-    if(flags.h_flag)
+    if (flags.h_flag)
       printf("total %lldK\n", total((const char **)file_name, num_files));
     else
       printf("total %lld\n", total((const char **)file_name, num_files));
@@ -486,24 +491,24 @@ int print(const char *curr_dir, const char **file_name, int num_files) {
         printf("%s ", files[i].user_name);
         printf("%s ", files[i].group_name);
 
-        if(flags.h_flag) {
+        if (flags.h_flag) {
           long double f_size = files[i].file_size;
           int max_width = 4;
           if (f_size > 1099511627776) {
             f_size /= 1099511627776;
             printf("%*.1lfT ", max_width, (double)f_size);
           } else {
-            if(f_size > 1073741824) {
+            if (f_size > 1073741824) {
               f_size /= 1073741824;
               printf("%*.1lfG ", max_width, (double)f_size);
             } else {
-              if(f_size > 1048576) {
+              if (f_size > 1048576) {
                 f_size /= 1048576;
                 printf("%*.1lfM ", max_width, (double)f_size);
               } else {
-                if(f_size > 1024) {
+                if (f_size > 1024) {
                   f_size /= 1024;
-                  printf("%*.1lfK ", max_width, (double)f_size); 
+                  printf("%*.1lfK ", max_width, (double)f_size);
                 } else {
                   printf("%*lld ", max_width + 1, (long long)f_size);
                 }
@@ -511,7 +516,8 @@ int print(const char *curr_dir, const char **file_name, int num_files) {
             }
           }
         } else {
-          printf("%*lld ", column_max_width(file_name, files, num_files, 'f'), files[i].file_size);  
+          printf("%*lld ", column_max_width(file_name, files, num_files, 'f'),
+                 files[i].file_size);
         }
 
         printf("%s ", files[i].date);
