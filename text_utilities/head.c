@@ -13,9 +13,10 @@ struct command_flags {
 } flags;
 
 int set_flags(int, char **, int *);
+int print(int, char **, int, int *);
 
 int set_flags(int argc, char **argv, int *many_files) {
-  for (int i = 1; i < argc; i++) {
+  for (int i = 1; i < argc; ++i) {
     if (argv[i][0] == '-') {
       if ((argv[i][1] == 'c' && argv[i][2] == '\0') ||
           strcmp(argv[i], "--bytes")) {
@@ -28,9 +29,40 @@ int set_flags(int argc, char **argv, int *many_files) {
         flags.z_flag = TRUE;
       }
     } else {
-      printf("head: cannot open '%s' for reading: No such file or directory\n",
-             argv[i]);
       *many_files = TRUE;
+    }
+  }
+
+  return (TRUE);
+}
+
+int print(int argc, char **argv, int num_lines, int *many_files) {
+  FILE * file;
+ 
+  for(int i = 1; i < argc; ++i) {
+    if(argv[i][0] != '-') {
+      int lines = num_lines;
+      file = NULL;
+      file = fopen(argv[i], "r");
+      if (file == NULL) {
+        printf("head: cannot open '%s' for reading: No such file or directory\n", argv[i]);
+        continue;
+      }
+
+      if(*many_files)
+        printf("==> %s <==\n", argv[i]);
+
+      char symbol;
+      while((symbol = fgetc(file)) &&!feof(file) && lines > 0) {
+        if (symbol == '\n')
+          --lines;
+        putchar(symbol);
+      }
+
+      if(*many_files && i != argc - 1)
+        putchar('\n');
+
+      fclose(file);
     }
   }
 
@@ -51,7 +83,11 @@ int main(int argc, char **argv) {
     return (ERROR);
   }
 
-  printf("many_files: %d\n", many_files);
+  int print_error = print(argc, argv, num_lines, &many_files);
+  if (print_error == ERROR) {
+    printf("[ERROR main()]: print()\n");
+    return (ERROR);
+  }
 
   return (0);
 }
