@@ -14,7 +14,7 @@ struct command_flags {
 
 int number_analyzer(char *);
 int set_flags(int, char **, int *, int *, int *);
-int print(int, char **, int, int, int *);
+int print(int, char **, int, int, int);
 
 int number_analyzer(char *number) {
   int length = strlen(number);
@@ -35,6 +35,7 @@ int number_analyzer(char *number) {
 
 int set_flags(int argc, char **argv, int *num_bytes, int *num_lines,
               int *many_files) {
+  int many_arguments = FALSE;
   for (int i = argc; i > 1; --i) {
     if (argv[i - 1][0] == '-') {
       if (i == argc) {
@@ -68,7 +69,10 @@ int set_flags(int argc, char **argv, int *num_bytes, int *num_lines,
         flags.z_flag = TRUE;
       }
     } else {
-      *many_files = TRUE;
+      if (many_arguments)
+        *many_files = TRUE;
+      else
+        many_arguments = TRUE;
     }
   }
 
@@ -76,7 +80,7 @@ int set_flags(int argc, char **argv, int *num_bytes, int *num_lines,
 }
 
 int print(int argc, char **argv, int num_bytes, int num_lines,
-          int *many_files) {
+          int many_files) {
   FILE *file;
 
   for (int i = 1; i < argc; ++i) {
@@ -93,7 +97,7 @@ int print(int argc, char **argv, int num_bytes, int num_lines,
           continue;
         }
 
-        if (*many_files)
+        if (many_files)
           printf("==> %s <==\n", argv[i]);
 
         char symbol;
@@ -103,7 +107,7 @@ int print(int argc, char **argv, int num_bytes, int num_lines,
           putchar(symbol);
         }
 
-        if (*many_files && i != argc - 1)
+        if (many_files && i != argc - 1)
           putchar('\n');
 
         fclose(file);
@@ -129,7 +133,7 @@ int main(int argc, char **argv) {
     return (ERROR);
   }
 
-  int print_error = print(argc, argv, num_bytes, num_lines, &many_files);
+  int print_error = print(argc, argv, num_bytes, num_lines, many_files);
   if (print_error == ERROR) {
     printf("[ERROR main()]: print()\n");
     return (ERROR);
