@@ -13,8 +13,8 @@ struct command_flags {
 } flags;
 
 int number_analyzer(char *);
-int set_flags(int, char **, int *, int *, int *);
-int print(int, char **, int, int, int);
+int set_flags(int, char **, int *, int *, int *, char *);
+int print(int, char **, int, int, int, char);
 
 int number_analyzer(char *number) {
   int length = strlen(number);
@@ -34,11 +34,11 @@ int number_analyzer(char *number) {
 }
 
 int set_flags(int argc, char **argv, int *num_bytes, int *num_lines,
-              int *many_files) {
+              int *many_files, char *main_flag) {
   int many_arguments = FALSE;
   for (int i = argc; i > 1; --i) {
     if (argv[i - 1][0] == '-') {
-      if (i == argc) {
+      if (i == argc && argv[i - 1][1] != 'z') {
         printf("head: option requires an argument -- '%c'\n", argv[i - 1][1]);
         printf("Try 'head --help' for more information.\n");
         return (ERROR);
@@ -46,26 +46,36 @@ int set_flags(int argc, char **argv, int *num_bytes, int *num_lines,
 
       if ((argv[i - 1][1] == 'c' && argv[i - 1][2] == '\0') ||
           strcmp(argv[i - 1], "--bytes") == 0) {
-        *num_bytes = number_analyzer(argv[i]);
-        if (*num_bytes == ERROR) {
-          printf("head: invalid number of bytes: ‘%s‘\n", argv[i]);
-          return (ERROR);
+        if (*main_flag == ' ') {
+          *num_bytes = number_analyzer(argv[i]);
+          if (*num_bytes == ERROR) {
+            printf("head: invalid number of bytes: ‘%s‘\n", argv[i]);
+            return (ERROR);
+          }
+
+          *main_flag = 'c';
         }
 
         flags.c_flag = TRUE;
         --i;
       } else if ((argv[i - 1][1] == 'n' && argv[i - 1][2] == '\0') ||
                  strcmp(argv[i - 1], "--lines") == 0) {
-        *num_lines = number_analyzer(argv[i]);
-        if (*num_lines == ERROR) {
-          printf("head: invalid number of lines: ‘%s‘\n", argv[i]);
-          return (ERROR);
+        if (*main_flag == ' ') {
+          *num_lines = number_analyzer(argv[i]);
+          if (*num_lines == ERROR) {
+            printf("head: invalid number of lines: ‘%s‘\n", argv[i]);
+            return (ERROR);
+          }
+
+          *main_flag = 'n';
         }
 
         flags.n_flag = TRUE;
         --i;
       } else if ((argv[i - 1][1] == 'z' && argv[i - 1][2] == '\0') ||
                  strcmp(argv[i - 1], "--zero-terminated")) {
+        if (*main_flag == ' ')
+          *main_flag = 'z';
         flags.z_flag = TRUE;
       }
     } else {
@@ -79,14 +89,15 @@ int set_flags(int argc, char **argv, int *num_bytes, int *num_lines,
   return (TRUE);
 }
 
-int print(int argc, char **argv, int num_bytes, int num_lines,
-          int many_files) {
+int print(int argc, char **argv, int num_bytes, int num_lines, int many_files,
+          char main_flag) {
   FILE *file;
 
   for (int i = 1; i < argc; ++i) {
     if (argv[i][0] != '-') {
       int num_analyzer_error = number_analyzer(argv[i]);
       if (num_analyzer_error == ERROR) {
+        int bytes = num_bytes;
         int lines = num_lines;
         file = NULL;
         file = fopen(argv[i], "r");
@@ -101,10 +112,21 @@ int print(int argc, char **argv, int num_bytes, int num_lines,
           printf("==> %s <==\n", argv[i]);
 
         char symbol;
-        while ((symbol = fgetc(file)) && !feof(file) && lines > 0) {
-          if (symbol == '\n')
-            --lines;
-          putchar(symbol);
+        if (main_flag == 'c') {
+          while (((symbol = fgetc(file)) && !feof(file)) && bytes > 0) {
+            --bytes;
+            putchar(symbol);
+          }
+        } else if (main_flag == 'z') {
+          while (((symbol = fgetc(file)) && !feof(file))) {
+            putchar(symbol);
+          }
+        } else {
+          while (((symbol = fgetc(file)) && !feof(file)) && lines > 0) {
+            if (symbol == '\n')
+              --lines;
+            putchar(symbol);
+          }
         }
 
         if (many_files && i != argc - 1)
@@ -122,18 +144,21 @@ int main(int argc, char **argv) {
   int num_bytes = 0;
   int num_lines = 10;
   int many_files = FALSE;
+  char main_flag = ' ';
 
   flags.c_flag = FALSE;
   flags.n_flag = FALSE;
   flags.z_flag = FALSE;
 
-  int flag_error = set_flags(argc, argv, &num_bytes, &num_lines, &many_files);
+  int flag_error =
+      set_flags(argc, argv, &num_bytes, &num_lines, &many_files, &main_flag);
   if (flag_error == ERROR) {
     printf("[ERROR main()]: Couldn't set the flags\n");
     return (ERROR);
   }
 
-  int print_error = print(argc, argv, num_bytes, num_lines, many_files);
+  int print_error =
+      print(argc, argv, num_bytes, num_lines, many_files, main_flag);
   if (print_error == ERROR) {
     printf("[ERROR main()]: print()\n");
     return (ERROR);
