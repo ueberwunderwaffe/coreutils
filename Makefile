@@ -6,3 +6,5 @@ nl:
 	gcc text_utilities/nl.c -o nl.out -Wall -Wextra
 head:
 	gcc text_utilities/head.c -o head.out -Wall -Wextra
+expand:
+	gcc text_utilities/expand.c -o expand.out -Wall -Wextra
