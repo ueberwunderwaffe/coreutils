@@ -73,7 +73,7 @@ int set_flags(int argc, char **argv, int *num_bytes, int *num_lines,
         flags.n_flag = TRUE;
         --i;
       } else if ((argv[i - 1][1] == 'z' && argv[i - 1][2] == '\0') ||
-                 strcmp(argv[i - 1], "--zero-terminated")) {
+                 strcmp(argv[i - 1], "--zero-terminated") == 0) {
         if (*main_flag == ' ')
           *main_flag = 'z';
         flags.z_flag = TRUE;
