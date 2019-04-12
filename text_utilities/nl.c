@@ -109,7 +109,7 @@ int print(int argc, char **argv, int line_inc, int line_start, int num_width) {
         file = fopen(argv[i], "r");
         if (file == NULL) {
           printf(
-              "head: cannot open '%s' for reading: No such file or directory\n",
+              "nl: cannot open '%s' for reading: No such file or directory\n",
               argv[i]);
           continue;
         }
