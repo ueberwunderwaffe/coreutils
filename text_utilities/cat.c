@@ -6,6 +6,8 @@
 
 #define ERROR -1
 
+#define SIZE 2048
+
 struct command_flags {
   int b_flag;
   int E_flag;
@@ -26,6 +28,12 @@ int main(int argc, char **argv) {
   int flag_error = set_flags(argc, argv);
   if (flag_error == ERROR) {
     printf("[ERROR main()]: Couldn't set the flags\n");
+    return (ERROR);
+  }
+
+  int print_error = print(argc, argv);
+  if (print_error == ERROR) {
+    printf("[ERROR main()]: print()\n");
     return (ERROR);
   }
 
@@ -68,6 +76,67 @@ int set_flags(int argc, char **argv) {
         printf("cat: invalid option -- '%c'\n", argv[i][1]);
         printf("Try 'cat --help' for more information.");
         return (ERROR);
+      }
+    }
+  }
+
+  return (TRUE);
+}
+
+int print(int argc, char **argv) {
+  FILE *file;
+
+  for (int i = 1; i < argc; ++i) {
+    if (argv[i][0] != '-') {
+      int num_analyzer_error = number_analyzer(argv[i]);
+      if (num_analyzer_error == ERROR) {
+        file = NULL;
+        file = fopen(argv[i], "r");
+        if (file == NULL) {
+          printf("cat: %s: No such file or directory\n", argv[i]);
+          continue;
+        }
+
+        char line[SIZE];
+        char end = '\0';
+        char tmp;
+
+        for (int i = 1; fgets(line, SIZE, file) && !feof(file); ++i) {
+          if (flags.b_flag && line[0] == '\0') {
+            i--;
+          } else {
+            if (flags.T_flag) {
+              tmp = line[0];
+              for (int j = 0; line[j] != '\0'; ++j) {
+                line[j] = tmp;
+                if (line[j] == '\t') {
+                  line[j] = '^';
+                  j++;
+                  tmp = line[j];
+                  line[j] = 'I';
+                } else {
+                  tmp = line[j + 1];
+                }
+              }
+            }
+
+            if (flags.E_flag) {
+              for (int j = 0; line[j] != '\0'; ++j) {
+                if (line[j] == '\n') {
+                  line[j] = '$';
+                  end = '\n';
+                }
+              }
+            }
+
+            if (flags.n_flag)
+              printf("%*d  %s%c", 6, i, line, end);
+            else
+              printf("%s%c", line, end);
+          }
+        }
+
+        fclose(file);
       }
     }
   }
