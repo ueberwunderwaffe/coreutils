@@ -99,40 +99,43 @@ int print(int argc, char **argv) {
 
         char line[SIZE];
         char end = '\0';
-        char tmp;
+        char tmp1, tmp2;
 
         for (int i = 1; fgets(line, SIZE, file) && !feof(file); ++i) {
-          if (flags.b_flag && line[0] == '\0') {
-            i--;
-          } else {
-            if (flags.T_flag) {
-              tmp = line[0];
-              for (int j = 0; line[j] != '\0'; ++j) {
-                line[j] = tmp;
-                if (line[j] == '\t') {
-                  line[j] = '^';
-                  j++;
-                  tmp = line[j];
-                  line[j] = 'I';
-                } else {
-                  tmp = line[j + 1];
+          if (flags.T_flag) {
+            for (int j = 0; line[j] != '\0'; ++j) {
+              if (line[j] == '\t') {
+                line[j] = '^';
+                j++;
+                tmp1 = line[j];
+                line[j] = 'I';
+                for (int k = j + 1; line[k - 1] != '\0'; ++k) {
+                  tmp2 = line[k];
+                  line[k] = tmp1;
+                  tmp1 = tmp2;
                 }
               }
             }
+          }
 
-            if (flags.E_flag) {
-              for (int j = 0; line[j] != '\0'; ++j) {
-                if (line[j] == '\n') {
-                  line[j] = '$';
-                  end = '\n';
-                }
+          if (flags.E_flag) {
+            for (int j = 0; line[j] != '\0'; ++j) {
+              if (line[j] == '\n') {
+                line[j] = '$';
+                end = '\n';
               }
             }
+          }
 
-            if (flags.n_flag)
-              printf("%*d  %s%c", 6, i, line, end);
-            else
+          if (flags.n_flag || flags.b_flag) {
+            if (flags.b_flag && (line[0] == '\n' || line[0] == '$')) {
               printf("%s%c", line, end);
+              i--;
+            } else {
+              printf("%*d  %s%c", 6, i, line, end);
+            }
+          } else {
+            printf("%s%c", line, end);
           }
         }
 
