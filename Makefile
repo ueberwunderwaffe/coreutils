@@ -10,3 +10,5 @@ expand:
 	gcc text_utilities/expand.c -o expand.out -Wall -Wextra
 unexpand:
 	gcc text_utilities/unexpand.c -o unexpand.out -Wall -Wextra
+sum:
+	gcc text_utilities/sum.c -o sum.out -Wall -Wextra
