@@ -14,3 +14,5 @@ sum:
 	gcc text_utilities/sum.c -o sum.out -Wall -Wextra
 wc:
 	gcc text_utilities/wc.c -o wc.out -Wall -Wextra
+sort:
+	gcc text_utilities/sort.c -o sort.out -Wall -Wextra
