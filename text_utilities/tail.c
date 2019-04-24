@@ -126,3 +126,57 @@ int set_flags(int argc, char **argv, int *num_bytes, int *num_lines,
 
   return (TRUE);
 }
+
+int print(int argc, char **argv, int num_bytes, int num_lines, int many_files, char main_flag) {
+  FILE *file;
+
+for (int i = 1; i < argc; ++i) {
+    if (argv[i][0] != '-') {
+      int num_analyzer_error = number_analyzer(argv[i]);
+      if (num_analyzer_error == ERROR) {
+        int bytes = num_bytes;
+        int lines = num_lines;
+        file = NULL;
+        file = fopen(argv[i], "r");
+        if (file == NULL) {
+          printf(
+              "head: cannot open '%s' for reading: No such file or directory\n",
+              argv[i]);
+          continue;
+        }
+
+        if ((many_files && flags.q_flag != TRUE) || flags.v_flag)
+          printf("==> %s <==\n", argv[i]);
+
+        fseek(file, 0, SEEK_END);
+        int size = ftell(file);
+        
+        if (main_flag == 'c') {
+          for(int i = 0; i < size; i++) {
+            fseek(file, size-1-i, SEEK_SET);
+            --bytes;
+            putchar(fgetc(file));
+          }
+        } else if (main_flag == 'z') {
+          for(int i = 0; i < size; i++) {
+            fseek(file, size-1-i, SEEK_SET);
+            putchar(fgetc(file));
+          }
+        } else {
+          for(int i = 0; i < size; i++) {
+            fseek(file, size-1-i, SEEK_SET);
+            --lines;
+            putchar(fgetc(file));
+          }
+        }
+
+        if (many_files && i != argc - 1)
+          putchar('\n');
+
+        fclose(file);
+      }
+    }
+  }
+
+  return (TRUE);
+}
