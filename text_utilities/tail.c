@@ -127,10 +127,29 @@ int set_flags(int argc, char **argv, int *num_bytes, int *num_lines,
   return (TRUE);
 }
 
-int print(int argc, char **argv, int num_bytes, int num_lines, int many_files, char main_flag) {
+int output_start(FILE *file, int size, int *num_lines) {
+  fseek(file, 0, SEEK_END);
+  int cur_line = 0;
+  char symbol;
+
+  for (int i = 0; i < size; i++) {
+    fseek(file, size - 1 - i, SEEK_SET);
+    symbol = fgetc(file);
+    if (symbol == '\n') {
+      cur_line++;
+      if (cur_line == *num_lines)
+        return (i);
+    }
+  }
+
+  return (ERROR);
+}
+
+int print(int argc, char **argv, int num_bytes, int num_lines, int many_files,
+          char main_flag) {
   FILE *file;
 
-for (int i = 1; i < argc; ++i) {
+  for (int i = 1; i < argc; ++i) {
     if (argv[i][0] != '-') {
       int num_analyzer_error = number_analyzer(argv[i]);
       if (num_analyzer_error == ERROR) {
@@ -150,23 +169,36 @@ for (int i = 1; i < argc; ++i) {
 
         fseek(file, 0, SEEK_END);
         int size = ftell(file);
-        
+
+        int start = output_start(file, size, &num_lines);
+        if (start == ERROR) {
+          printf("[ERROR print()]: Cann't determine the beginning of the "
+                 "reading.\n");
+          return (ERROR);
+        }
+
+        fseek(file, start * sizeof(char), SEEK_SET);
+
+        char symbol;
         if (main_flag == 'c') {
-          for(int i = 0; i < size; i++) {
-            fseek(file, size-1-i, SEEK_SET);
+          while (((symbol = fgetc(file)) && !feof(file)) && bytes > 0 &&
+                 start < size) {
             --bytes;
-            putchar(fgetc(file));
+            start++;
+            putchar(symbol);
           }
         } else if (main_flag == 'z') {
-          for(int i = 0; i < size; i++) {
-            fseek(file, size-1-i, SEEK_SET);
-            putchar(fgetc(file));
+          while (((symbol = fgetc(file)) && !feof(file)) && start < size) {
+            putchar(symbol);
+            start++;
           }
         } else {
-          for(int i = 0; i < size; i++) {
-            fseek(file, size-1-i, SEEK_SET);
-            --lines;
-            putchar(fgetc(file));
+          while (((symbol = fgetc(file)) && !feof(file)) && lines > 0 &&
+                 start < size) {
+            if (symbol == '\n')
+              --lines;
+            putchar(symbol);
+            start++;
           }
         }
 
