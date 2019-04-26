@@ -18,6 +18,8 @@ wc:
 	gcc text_utilities/wc.c -o wc.out -Wall -Wextra
 sort:
 	gcc text_utilities/sort.c -o sort.out -Wall -Wextra
+comm:
+	gcc text_utilities/comm.c -o comm.out -Wall -Wextra
 arch:
 	gcc shell_utilities/arch.c -o arch.out -Wall -Wextra
 date:
