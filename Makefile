@@ -24,3 +24,5 @@ arch:
 	gcc shell_utilities/arch.c -o arch.out -Wall -Wextra
 date:
 	gcc shell_utilities/date.c -o date.out -Wall -Wextra
+echo:
+	gcc shell_utilities/echo.c -o echo.out -Wall -Wextra
