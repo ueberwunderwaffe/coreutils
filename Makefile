@@ -28,3 +28,5 @@ date:
 	gcc shell_utilities/date.c -o date.out -Wall -Wextra
 echo:
 	gcc shell_utilities/echo.c -o echo.out -Wall -Wextra
+id:
+	gcc shell_utilities/id.c -o id.out -Wall -Wextra
