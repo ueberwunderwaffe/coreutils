@@ -133,12 +133,12 @@ int output_start(FILE *file, int size, int *num_lines) {
   char symbol;
 
   for (int i = 0; i < size; i++) {
-    fseek(file, size - 1 - i, SEEK_SET);
+    fseek(file, size - 2 - i, SEEK_SET);
     symbol = fgetc(file);
     if (symbol == '\n') {
       cur_line++;
       if (cur_line == *num_lines)
-        return (i);
+        return (size - 1 - i);
     }
   }
 
@@ -177,7 +177,7 @@ int print(int argc, char **argv, int num_bytes, int num_lines, int many_files,
           return (ERROR);
         }
 
-        fseek(file, start * sizeof(char), SEEK_SET);
+        fseek(file, start, SEEK_SET);
 
         char symbol;
         if (main_flag == 'c') {
