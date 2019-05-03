@@ -16,11 +16,12 @@ struct command_flags {
 
 int number_analyzer(char *);
 int set_flags(int, char **, int *, int *, int *, char *);
+int output_start(FILE *, int, int);
 int print(int, char **, int, int, int, char);
 
 int main(int argc, char **argv) {
-  int num_bytes = 0;  // -c
-  int num_lines = 10; // -n
+  int num_bytes = 0;
+  int num_lines = 10;
   int many_files = FALSE;
   char main_flag = ' ';
 
@@ -127,7 +128,7 @@ int set_flags(int argc, char **argv, int *num_bytes, int *num_lines,
   return (TRUE);
 }
 
-int output_start(FILE *file, int size, int *num_lines) {
+int output_start(FILE *file, int size, int num_lines) {
   fseek(file, 0, SEEK_END);
   int cur_line = 0;
   char symbol;
@@ -137,8 +138,12 @@ int output_start(FILE *file, int size, int *num_lines) {
     symbol = fgetc(file);
     if (symbol == '\n') {
       cur_line++;
-      if (cur_line == *num_lines)
+      if (cur_line == num_lines)
         return (size - 1 - i);
+    }
+
+    if (i == size - 1) {
+      return (size - 1 - i);
     }
   }
 
@@ -170,7 +175,7 @@ int print(int argc, char **argv, int num_bytes, int num_lines, int many_files,
         fseek(file, 0, SEEK_END);
         int size = ftell(file);
 
-        int start = output_start(file, size, &num_lines);
+        int start = output_start(file, size, num_lines);
         if (start == ERROR) {
           printf("[ERROR print()]: Cann't determine the beginning of the "
                  "reading.\n");
@@ -181,6 +186,7 @@ int print(int argc, char **argv, int num_bytes, int num_lines, int many_files,
 
         char symbol;
         if (main_flag == 'c') {
+          fseek(file, size - bytes, SEEK_SET);
           while (((symbol = fgetc(file)) && !feof(file)) && bytes > 0 &&
                  start < size) {
             --bytes;
@@ -188,7 +194,8 @@ int print(int argc, char **argv, int num_bytes, int num_lines, int many_files,
             putchar(symbol);
           }
         } else if (main_flag == 'z') {
-          while (((symbol = fgetc(file)) && !feof(file)) && start < size) {
+          fseek(file, 0, SEEK_SET);
+          while (((symbol = fgetc(file)) && !feof(file))) {
             putchar(symbol);
             start++;
           }
