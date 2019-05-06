@@ -8,7 +8,7 @@
 - [X] **nl** (Numbers lines of files)
 - [X] **head** (Outputs the first part of files)
 - [X] **tail** (Outputs the last part of files)
-- [ ] **expand** (Converts tabs to spaces)
+- [X] **expand** (Converts tabs to spaces)
 - [ ] **unexpand** (Converts spaces to tabs)
 - [ ] **sum** (Checksums and counts the blocks in a file)
 - [ ] **cksum** (Checksums and count the bytes in a file)

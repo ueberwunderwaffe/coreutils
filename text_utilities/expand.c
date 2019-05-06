@@ -13,9 +13,10 @@ struct command_flags {
 
 int number_analyzer(char *);
 int set_flags(int, char **, int *);
+void print(int, char **, int);
 
 int main(int argc, char **argv) {
-  int tabs = 4;
+  int tabs = 8;
 
   flags.i_flag = FALSE;
   flags.t_flag = FALSE;
@@ -25,6 +26,8 @@ int main(int argc, char **argv) {
     printf("[ERROR main()]: Couldn't set the flags\n");
     return (ERROR);
   }
+
+  print(argc, argv, tabs);
 
   return (0);
 }
@@ -66,4 +69,47 @@ int set_flags(int argc, char **argv, int *tabs) {
   }
 
   return (TRUE);
+}
+
+void print(int argc, char **argv, int tabs) {
+  FILE *file;
+
+  for (int i = 1; i < argc; i++) {
+    if (argv[i][0] != '-') {
+      int num_analyzer_error = number_analyzer(argv[i]);
+      if (num_analyzer_error == ERROR) {
+        file = NULL;
+        file = fopen(argv[i], "r");
+        if (file == NULL) {
+          printf("expand: %s: No such file or directory\n", argv[i]);
+          continue;
+        }
+
+        char symbol;
+        if (flags.i_flag) {
+          while ((symbol = fgetc(file)) && !feof(file)) {
+            if (symbol == '\t')
+              for(int i = 0; i < tabs; ++i)
+                putchar(' ');
+            else
+              putchar(symbol);
+
+            if (symbol != ' ' || symbol != '\t' || symbol != '\n')
+              break;
+          }
+        }
+
+        while ((symbol = fgetc(file)) && !feof(file)) {
+          if (symbol == '\t' && !flags.i_flag)
+            for(int i = 0; i < tabs; ++i) {
+              putchar(' ');
+            }
+          else
+            putchar(symbol);
+        }
+        
+        fclose(file);
+      }
+    }
+  }
 }
