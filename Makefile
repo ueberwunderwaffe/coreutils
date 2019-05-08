@@ -1,32 +1,44 @@
+CC = gcc
+CFLAGS = -Wall -Wextra
+
+FU = file_utilities/
+TU = text_utilities/
+SU = shell_utilities/
+
+### File utilities ###
 ls:
-	gcc file_utilities/ls.c -o ls.out -Wall -Wextra
+	$(CC) $(FU)ls.c -o ls.out $(CFLAGS)
+
+### Text utilities ###
 cat:
-	gcc text_utilities/cat.c -o cat.out -Wall -Wextra
+	$(CC) $(TU)cat.c -o cat.out $(CFLAGS)
 nl:
-	gcc text_utilities/nl.c -o nl.out -Wall -Wextra
+	$(CC) $(TU)nl.c -o nl.out $(CFLAGS)
 head:
-	gcc text_utilities/head.c -o head.out -Wall -Wextra
+	$(CC) $(TU)head.c -o head.out $(CFLAGS)
 tail:
-	gcc text_utilities/tail.c -o tail.out -Wall -Wextra
+	$(CC) $(TU)tail.c -o tail.out $(CFLAGS)
 expand:
-	gcc text_utilities/expand.c -o expand.out -Wall -Wextra
+	$(CC) $(TU)expand.c -o expand.out $(CFLAGS)
 unexpand:
-	gcc text_utilities/unexpand.c -o unexpand.out -Wall -Wextra
+	$(CC) $(TU)unexpand.c -o unexpand.out $(CFLAGS)
 sum:
-	gcc text_utilities/sum.c -o sum.out -Wall -Wextra
+	$(CC) $(TU)sum.c -o sum.out $(CFLAGS)
 cksum:
-	gcc text_utilities/cksum.c -o cksum.out -Wall -Wextra
+	$(CC) $(TU)cksum.c -o cksum.out $(CFLAGS)
 wc:
-	gcc text_utilities/wc.c -o wc.out -Wall -Wextra
+	$(CC) $(TU)wc.c -o wc.out $(CFLAGS)
 sort:
-	gcc text_utilities/sort.c -o sort.out -Wall -Wextra
+	$(CC) $(TU)sort.c -o sort.out $(CFLAGS)
 comm:
-	gcc text_utilities/comm.c -o comm.out -Wall -Wextra
+	$(CC) $(TU)comm.c -o comm.out $(CFLAGS)
+
+### Shell utilities ###
 arch:
-	gcc shell_utilities/arch.c -o arch.out -Wall -Wextra
+	$(CC) $(SU)arch.c -o arch.out $(CFLAGS)
 date:
-	gcc shell_utilities/date.c -o date.out -Wall -Wextra
+	$(CC) $(SU)date.c -o date.out $(CFLAGS)
 echo:
-	gcc shell_utilities/echo.c -o echo.out -Wall -Wextra
+	$(CC) $(SU)echo.c -o echo.out $(CFLAGS)
 id:
-	gcc shell_utilities/id.c -o id.out -Wall -Wextra
+	$(CC) $(SU)id.c -o id.out $(CFLAGS)
