@@ -8,6 +8,7 @@ SU = shell_utilities/
 ### File utilities ###
 ls:
 	$(CC) $(FU)ls.c -o ls.out $(CFLAGS)
+	$(CC) $(FU)chown.c -o chown.out $(CFLAGS)
 
 ### Text utilities ###
 cat:

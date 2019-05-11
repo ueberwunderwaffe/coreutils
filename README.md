@@ -2,6 +2,7 @@
 
 ## File utilities
 - [X] **ls** (Lists the files in a directory)
+- [ ] **chown** (Changes file ownership)
 
 ## Text utilities
 - [X] **cat** (Concatenates and prints files on the standard output)
