@@ -12,7 +12,7 @@
 - [X] **expand** (Converts tabs to spaces)
 - [X] **unexpand** (Converts spaces to tabs)
 - [X] **sum** (Checksums and counts the blocks in a file)
-- [ ] **cksum** (Checksums and count the bytes in a file)
+- [X] **cksum** (Checksums and count the bytes in a file)
 - [ ] **wc** (Prints the number of bytes, words, and lines in files)
 - [ ] **sort** (Sort lines of text files)
 - [ ] **comm** (Compares two sorted files line by line)
