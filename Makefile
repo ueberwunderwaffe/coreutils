@@ -9,6 +9,7 @@ SU = shell_utilities/
 ls:
 	$(CC) $(FU)ls.c -o ls.out $(CFLAGS)
 	$(CC) $(FU)chown.c -o chown.out $(CFLAGS)
+	$(CC) $(FU)chmod.c -o chmod.out $(CFLAGS)
 
 ### Text utilities ###
 cat:
