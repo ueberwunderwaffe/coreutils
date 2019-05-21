@@ -2,6 +2,7 @@
 
 ## File utilities
 - [X] **ls** (Lists the files in a directory)
+- [ ] **chgrp** (Changes file group ownership)
 - [ ] **chown** (Changes file ownership)
 - [ ] **chmod** (Changes the permissions of a file or directory)
 
