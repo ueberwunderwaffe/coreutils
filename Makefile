@@ -11,6 +11,7 @@ ls:
 	$(CC) $(FU)chgrp.c -o chgrp.out $(CFLAGS)
 	$(CC) $(FU)chown.c -o chown.out $(CFLAGS)
 	$(CC) $(FU)chmod.c -o chmod.out $(CFLAGS)
+	$(CC) $(FU)cp.c -o cp.out $(CFLAGS)
 
 ### Text utilities ###
 cat:

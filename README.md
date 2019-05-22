@@ -5,6 +5,7 @@
 - [ ] **chgrp** (Changes file group ownership)
 - [ ] **chown** (Changes file ownership)
 - [ ] **chmod** (Changes the permissions of a file or directory)
+- [ ] **cp** (Copies a file or directory)
 
 ## Text utilities
 - [X] **cat** (Concatenates and prints files on the standard output)
