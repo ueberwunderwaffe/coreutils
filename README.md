@@ -6,7 +6,7 @@
 - [ ] **chown** (Changes file ownership)
 - [ ] **chmod** (Changes the permissions of a file or directory)
 - [ ] **cp** (Copies a file or directory)
-
+- [ ] **dd** (Copies and converts a file)
 ## Text utilities
 - [X] **cat** (Concatenates and prints files on the standard output)
 - [X] **nl** (Numbers lines of files)
