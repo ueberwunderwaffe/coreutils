@@ -8,11 +8,18 @@ SU = shell_utilities/
 ### File utilities ###
 ls:
 	$(CC) $(FU)ls.c -o ls.out $(CFLAGS)
+chgrp:	
 	$(CC) $(FU)chgrp.c -o chgrp.out $(CFLAGS)
+chown:
 	$(CC) $(FU)chown.c -o chown.out $(CFLAGS)
+chmod:
 	$(CC) $(FU)chmod.c -o chmod.out $(CFLAGS)
+cp:
 	$(CC) $(FU)cp.c -o cp.out $(CFLAGS)
+dd:	
 	$(CC) $(FU)dd.c -o dd.out $(CFLAGS)
+df:
+	$(CC) $(FU)df.c -o df.out $(CFLAGS)
 
 ### Text utilities ###
 cat:

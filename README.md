@@ -7,6 +7,8 @@
 - [ ] **chmod** (Changes the permissions of a file or directory)
 - [ ] **cp** (Copies a file or directory)
 - [ ] **dd** (Copies and converts a file)
+- [ ] **df** (Shows disk free space on file systems)
+
 ## Text utilities
 - [X] **cat** (Concatenates and prints files on the standard output)
 - [X] **nl** (Numbers lines of files)
