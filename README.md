@@ -23,7 +23,7 @@
 - [ ] **comm** (Compares two sorted files line by line)
 
 ## Shell utilities
-- [ ] **arch** (Prints machine hardware name (same as uname -m))
+- [X] **arch** (Prints machine hardware name (same as uname -m))
 - [ ] **date** (Prints or sets the system date and time)
 - [ ] **echo** (Displays a specified line of text)
 - [ ] **id** (Prints real or effective UID and GID)
