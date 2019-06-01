@@ -54,3 +54,5 @@ echo:
 	$(CC) $(SU)echo.c -o echo.out $(CFLAGS)
 id:
 	$(CC) $(SU)id.c -o id.out $(CFLAGS)
+pwd:
+	$(CC) $(SU)pwd.c -o pwd.out $(CFLAGS)
