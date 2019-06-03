@@ -29,3 +29,4 @@
 - [ ] **id** (Prints real or effective UID and GID)
 - [X] **pwd** (Prints the current working directory)
 - [X] **yes** (Prints a string repeatedly)
+- [X] **whoami** (Prints the effective userid)

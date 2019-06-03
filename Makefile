@@ -58,3 +58,5 @@ pwd:
 	$(CC) $(SU)pwd.c -o pwd.out $(CFLAGS)
 yes:
 	$(CC) $(SU)yes.c -o yes.out $(CFLAGS)
+whoami:
+	$(CC) $(SU)whoami.c -o whoami.out $(CFLAGS)
