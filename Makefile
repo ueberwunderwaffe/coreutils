@@ -60,3 +60,5 @@ yes:
 	$(CC) $(SU)yes.c -o yes.out $(CFLAGS)
 whoami:
 	$(CC) $(SU)whoami.c -o whoami.out $(CFLAGS)
+logname:
+	$(CC) $(SU)logname.c -o logname.out $(CFLAGS)

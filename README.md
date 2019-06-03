@@ -30,3 +30,4 @@
 - [X] **pwd** (Prints the current working directory)
 - [X] **yes** (Prints a string repeatedly)
 - [X] **whoami** (Prints the effective userid)
+- [X] **logname** (Print the user's login name)
