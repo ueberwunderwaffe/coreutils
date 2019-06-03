@@ -56,3 +56,5 @@ id:
 	$(CC) $(SU)id.c -o id.out $(CFLAGS)
 pwd:
 	$(CC) $(SU)pwd.c -o pwd.out $(CFLAGS)
+yes:
+	$(CC) $(SU)yes.c -o yes.out $(CFLAGS)

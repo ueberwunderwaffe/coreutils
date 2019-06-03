@@ -27,4 +27,5 @@
 - [ ] **date** (Prints or sets the system date and time)
 - [ ] **echo** (Displays a specified line of text)
 - [ ] **id** (Prints real or effective UID and GID)
-- [ ] **pwd** (Prints the current working directory)
+- [X] **pwd** (Prints the current working directory)
+- [X] **yes** (Prints a string repeatedly)
