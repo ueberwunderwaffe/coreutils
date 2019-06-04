@@ -62,3 +62,5 @@ whoami:
 	$(CC) $(SU)whoami.c -o whoami.out $(CFLAGS)
 logname:
 	$(CC) $(SU)logname.c -o logname.out $(CFLAGS)
+true:
+	$(CC) $(SU)true.c -o true.out $(CFLAGS)

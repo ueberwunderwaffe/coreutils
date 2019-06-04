@@ -31,3 +31,4 @@
 - [X] **yes** (Prints a string repeatedly)
 - [X] **whoami** (Prints the effective userid)
 - [X] **logname** (Print the user's login name)
+- [X] **true** (Does nothing, but exits successfully)
