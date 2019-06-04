@@ -64,3 +64,5 @@ logname:
 	$(CC) $(SU)logname.c -o logname.out $(CFLAGS)
 true:
 	$(CC) $(SU)true.c -o true.out $(CFLAGS)
+false:
+	$(CC) $(SU)false.c -o false.out $(CFLAGS)
