@@ -66,3 +66,5 @@ true:
 	$(CC) $(SU)true.c -o true.out $(CFLAGS)
 false:
 	$(CC) $(SU)false.c -o false.out $(CFLAGS)
+hostid:
+	$(CC) $(SU)hostid.c -o hostid.out $(CFLAGS)
