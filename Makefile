@@ -68,3 +68,5 @@ false:
 	$(CC) $(SU)false.c -o false.out $(CFLAGS)
 hostid:
 	$(CC) $(SU)hostid.c -o hostid.out $(CFLAGS)
+nproc:
+	$(CC) $(SU)nproc.c -o nproc.out $(CFLAGS)
