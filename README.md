@@ -35,3 +35,4 @@
 - [X] **false** (Does nothing, but exits unsuccessfully)
 - [X] **hostid** (Prints the numeric identifier for the current host)
 - [X] **nproc** (Queries the number of (active) processors)
+- [ ] **stat** (Returns data about an inode)

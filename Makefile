@@ -70,3 +70,5 @@ hostid:
 	$(CC) $(SU)hostid.c -o hostid.out $(CFLAGS)
 nproc:
 	$(CC) $(SU)nproc.c -o nproc.out $(CFLAGS)
+stat:
+	$(CC) $(SU)stat.c -o stat.out $(CFLAGS)
