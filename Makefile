@@ -72,3 +72,5 @@ nproc:
 	$(CC) $(SU)nproc.c -o nproc.out $(CFLAGS)
 stat:
 	$(CC) $(SU)stat.c -o stat.out $(CFLAGS)
+timeout:
+	$(CC) $(SU)timeout.c -o timeout.out $(CFLAGS)
