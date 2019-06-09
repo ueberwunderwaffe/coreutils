@@ -74,3 +74,5 @@ stat:
 	$(CC) $(SU)stat.c -o stat.out $(CFLAGS)
 timeout:
 	$(CC) $(SU)timeout.c -o timeout.out $(CFLAGS)
+tty:
+	$(CC) $(SU)tty.c -o tty.out $(CFLAGS)
