@@ -37,4 +37,4 @@
 - [X] **nproc** (Queries the number of (active) processors)
 - [ ] **stat** (Returns data about an inode)
 - [ ] **timeout** (Run a command with a time limit)
-- [ ] **tty** (Prints terminal name)
+- [X] **tty** (Prints terminal name)
