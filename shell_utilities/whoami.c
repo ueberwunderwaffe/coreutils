@@ -22,8 +22,8 @@ int main(int argc, char **argv) {
     printf("Try 'whoami --help' for more information.\n");
     return (ERROR);
   } else {
-    register uid_t uid = geteuid();
-    register struct passwd *pw = getpwuid(uid);
+    uid_t uid = geteuid();
+    struct passwd *pw = getpwuid(uid);
 
     if (pw) {
       printf("%s\n", pw->pw_name);

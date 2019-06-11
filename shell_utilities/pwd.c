@@ -8,7 +8,7 @@
 
 #define ERROR -1
 
-#define SIZE 256
+#define SIZE 1024
 
 struct command_flags {
   int L_flag;
