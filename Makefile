@@ -76,3 +76,5 @@ timeout:
 	$(CC) $(SU)timeout.c -o timeout.out $(CFLAGS)
 tty:
 	$(CC) $(SU)tty.c -o tty.out $(CFLAGS)
+test:
+	$(CC) $(SU)test.c -o test.out $(CFLAGS)

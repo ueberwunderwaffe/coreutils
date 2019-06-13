@@ -38,3 +38,4 @@
 - [ ] **stat** (Returns data about an inode)
 - [ ] **timeout** (Run a command with a time limit)
 - [X] **tty** (Prints terminal name)
+- [ ] **test** (Evaluates an expression)
