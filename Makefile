@@ -78,3 +78,5 @@ tty:
 	$(CC) $(SU)tty.c -o tty.out $(CFLAGS)
 test:
 	$(CC) $(SU)test.c -o test.out $(CFLAGS)
+tee:
+	$(CC) $(SU)tee.c -o tee.out $(CFLAGS)
