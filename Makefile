@@ -80,3 +80,5 @@ test:
 	$(CC) $(SU)test.c -o test.out $(CFLAGS)
 tee:
 	$(CC) $(SU)tee.c -o tee.out $(CFLAGS)
+uname:
+	$(CC) $(SU)uname.c -o uname.out $(CFLAGS)

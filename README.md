@@ -40,3 +40,4 @@
 - [X] **tty** (Prints terminal name)
 - [ ] **test** (Evaluates an expression)
 - [ ] **tee** (Sends output to multiple files)
+- [ ] **uname** (Prints system information)
