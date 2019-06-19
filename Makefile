@@ -82,3 +82,5 @@ tee:
 	$(CC) $(SU)tee.c -o tee.out $(CFLAGS)
 uname:
 	$(CC) $(SU)uname.c -o uname.out $(CFLAGS)
+unlink:
+	$(CC) $(SU)unlink.c -o unlink.out $(CFLAGS)

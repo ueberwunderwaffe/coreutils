@@ -41,3 +41,4 @@
 - [ ] **test** (Evaluates an expression)
 - [ ] **tee** (Sends output to multiple files)
 - [ ] **uname** (Prints system information)
+- [ ] **unlink** (Removes the specified file using the unlink function)
