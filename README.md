@@ -42,3 +42,4 @@
 - [ ] **tee** (Sends output to multiple files)
 - [ ] **uname** (Prints system information)
 - [ ] **unlink** (Removes the specified file using the unlink function)
+- [ ] **uptime** (Tells how long the system has been running)

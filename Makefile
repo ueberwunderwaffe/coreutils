@@ -84,3 +84,5 @@ uname:
 	$(CC) $(SU)uname.c -o uname.out $(CFLAGS)
 unlink:
 	$(CC) $(SU)unlink.c -o unlink.out $(CFLAGS)
+uptime:
+	$(CC) $(SU)uptime.c -o uptime.out $(CFLAGS)
