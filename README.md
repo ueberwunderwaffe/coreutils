@@ -43,3 +43,4 @@
 - [ ] **uname** (Prints system information)
 - [ ] **unlink** (Removes the specified file using the unlink function)
 - [ ] **uptime** (Tells how long the system has been running)
+- [ ] **users** (Prints the user names of users currently logged into the current host)
