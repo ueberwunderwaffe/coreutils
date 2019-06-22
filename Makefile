@@ -88,3 +88,5 @@ uptime:
 	$(CC) $(SU)uptime.c -o uptime.out $(CFLAGS)
 users:
 	$(CC) $(SU)users.c -o users.out $(CFLAGS)
+who:
+	$(CC) $(SU)who.c -o who.out $(CFLAGS)
