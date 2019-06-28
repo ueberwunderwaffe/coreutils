@@ -45,3 +45,4 @@
 - [ ] **uptime** (Tells how long the system has been running)
 - [ ] **users** (Prints the user names of users currently logged into the current host)
 - [ ] **who** (Prints a list of all users currently logged in)
+- [ ] **seq** (Prints a sequence of numbers)

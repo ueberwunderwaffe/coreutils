@@ -90,3 +90,5 @@ users:
 	$(CC) $(SU)users.c -o users.out $(CFLAGS)
 who:
 	$(CC) $(SU)who.c -o who.out $(CFLAGS)
+seq:
+	$(CC) $(SU)seq.c -o seq.out $(CFLAGS)
