@@ -92,3 +92,5 @@ who:
 	$(CC) $(SU)who.c -o who.out $(CFLAGS)
 seq:
 	$(CC) $(SU)seq.c -o seq.out $(CFLAGS)
+printf:
+	$(CC) $(SU)printf.c -o printf.out $(CFLAGS)
