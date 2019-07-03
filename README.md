@@ -47,3 +47,4 @@
 - [ ] **who** (Prints a list of all users currently logged in)
 - [ ] **seq** (Prints a sequence of numbers)
 - [ ] **printf** (Formats and prints data)_
+- [ ] **nice** (Modifies scheduling priority)
