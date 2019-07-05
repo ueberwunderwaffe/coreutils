@@ -46,5 +46,6 @@
 - [ ] **users** (Prints the user names of users currently logged into the current host)
 - [ ] **who** (Prints a list of all users currently logged in)
 - [ ] **seq** (Prints a sequence of numbers)
-- [ ] **printf** (Formats and prints data)_
+- [ ] **printf** (Formats and prints data)
 - [ ] **nice** (Modifies scheduling priority)
+- [ ] **factor** (Factors numbers)
