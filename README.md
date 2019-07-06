@@ -48,4 +48,5 @@
 - [ ] **seq** (Prints a sequence of numbers)
 - [ ] **printf** (Formats and prints data)
 - [ ] **nice** (Modifies scheduling priority)
+- [ ] **nohup** (Allows a command to continue running after logging out)
 - [ ] **factor** (Factors numbers)

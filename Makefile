@@ -96,5 +96,7 @@ printf:
 	$(CC) $(SU)printf.c -o printf.out $(CFLAGS)
 nice:
 	$(CC) $(SU)nice.c -o nice.out $(CFLAGS)
+nohup:
+	$(CC) $(SU)nohup.c -o nohup.out $(CFLAGS)
 factor:
 	$(CC) $(SU)factor.c -o factor.out $(CFLAGS)
