@@ -100,3 +100,5 @@ nohup:
 	$(CC) $(SU)nohup.c -o nohup.out $(CFLAGS)
 factor:
 	$(CC) $(SU)factor.c -o factor.out $(CFLAGS)
+expr:
+	$(CC) $(SU)expr.c -o expr.out $(CFLAGS)
