@@ -1,25 +1,61 @@
-CC = gcc
-CFLAGS = -Wall -Wextra
+C_COMPILER = gcc
+C_FLAGS = -Wall -Wextra -Werror
 
 FU = file_utilities/
 TU = text_utilities/
 SU = shell_utilities/
 
 ### File utilities ###
-ls:
-	$(CC) $(FU)ls.c -o ls.out $(CFLAGS)
-chgrp:	
-	$(CC) $(FU)chgrp.c -o chgrp.out $(CFLAGS)
+chcon:
+	$(C_COMPILER) $(FU)chcon.c -o chcon.out $(C_FLAGS)
+chgrp:
+	$(C_COMPILER) $(FU)chgrp.c -o chgrp.out $(C_FLAGS)
 chown:
-	$(CC) $(FU)chown.c -o chown.out $(CFLAGS)
+	$(C_COMPILER) $(FU)chown.c -o chown.out $(C_FLAGS)
 chmod:
-	$(CC) $(FU)chmod.c -o chmod.out $(CFLAGS)
+	$(C_COMPILER) $(FU)chmod.c -o chmod.out $(C_FLAGS)
 cp:
-	$(CC) $(FU)cp.c -o cp.out $(CFLAGS)
-dd:	
-	$(CC) $(FU)dd.c -o dd.out $(CFLAGS)
+	$(C_COMPILER) $(FU)cp.c -o cp.out $(C_FLAGS)
+dd:
+	$(C_COMPILER) $(FU)dd.c -o dd.out $(C_FLAGS)
 df:
-	$(CC) $(FU)df.c -o df.out $(CFLAGS)
+	$(C_COMPILER) $(FU)df.c -o df.out $(C_FLAGS)
+dir:
+	$(C_COMPILER) $(FU)dir.c -o dir.out $(C_FLAGS)
+dircolors:
+	$(C_COMPILER) $(FU)dircolors.c -o dircolors.out $(C_FLAGS)
+install:
+	$(C_COMPILER) $(FU)install.c -o install.out $(C_FLAGS)
+ln:
+	$(C_COMPILER) $(FU)ln.c -o ln.out $(C_FLAGS)
+ls:
+	$(C_COMPILER) $(FU)ls.c -o ls.out $(C_FLAGS)
+mkdir:
+	$(C_COMPILER) $(FU)mkdir.c -o mkdir.out $(C_FLAGS)
+mkfifo:
+	$(C_COMPILER) $(FU)mkfifo.c -o mkfifo.out $(C_FLAGS)
+mknod:
+	$(C_COMPILER) $(FU)mknod.c -o mknod.out $(C_FLAGS)
+mktemp:
+	$(C_COMPILER) $(FU)mktemp.c -o mktemp.out $(C_FLAGS)
+mv:
+	$(C_COMPILER) $(FU)mv.c -o mv.out $(C_FLAGS)
+realpath:
+	$(C_COMPILER) $(FU)realpath.c -o realpath.out $(C_FLAGS)
+rm:
+	$(C_COMPILER) $(FU)rm.c -o rm.out $(C_FLAGS)
+rmdir:
+	$(C_COMPILER) $(FU)rmdir.c -o rmdir.out $(C_FLAGS)
+shred:
+	$(C_COMPILER) $(FU)shred.c -o shred.out $(C_FLAGS)
+sync:
+	$(C_COMPILER) $(FU)sync.c -o sync.out $(C_FLAGS)
+touch:
+	$(C_COMPILER) $(FU)touch.c -o touch.out $(C_FLAGS)
+truncate:
+	$(C_COMPILER) $(FU)truncate.c -o truncate.out $(C_FLAGS)
+vdir:
+	$(C_COMPILER) $(FU)vdir.c -o vdir.out $(C_FLAGS)
 
 ### Text utilities ###
 cat:
@@ -102,3 +138,5 @@ factor:
 	$(CC) $(SU)factor.c -o factor.out $(CFLAGS)
 expr:
 	$(CC) $(SU)expr.c -o expr.out $(CFLAGS)
+du:
+	$(CC) $(SU)du.c -o du.out $(CFLAGS)
