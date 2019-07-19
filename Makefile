@@ -58,28 +58,70 @@ vdir:
 	$(C_COMPILER) $(FU)vdir.c -o vdir.out $(C_FLAGS)
 
 ### Text utilities ###
+b2sum:
+	$(C_COMPILER) $(TU)b2sum.c -o b2sum.out $(C_FLAGS)
+base32:
+	$(C_COMPILER) $(TU)base32.c -o base32.out $(C_FLAGS)
+base64:
+	$(C_COMPILER) $(TU)base64.c -o base64.out $(C_FLAGS)
 cat:
-	$(CC) $(TU)cat.c -o cat.out $(CFLAGS)
-nl:
-	$(CC) $(TU)nl.c -o nl.out $(CFLAGS)
-head:
-	$(CC) $(TU)head.c -o head.out $(CFLAGS)
-tail:
-	$(CC) $(TU)tail.c -o tail.out $(CFLAGS)
-expand:
-	$(CC) $(TU)expand.c -o expand.out $(CFLAGS)
-unexpand:
-	$(CC) $(TU)unexpand.c -o unexpand.out $(CFLAGS)
-sum:
-	$(CC) $(TU)sum.c -o sum.out $(CFLAGS)
+	$(C_COMPILER) $(TU)cat.c -o cat.out $(C_FLAGS)
 cksum:
-	$(CC) $(TU)cksum.c -o cksum.out $(CFLAGS)
-wc:
-	$(CC) $(TU)wc.c -o wc.out $(CFLAGS)
-sort:
-	$(CC) $(TU)sort.c -o sort.out $(CFLAGS)
+	$(C_COMPILER) $(TU)cksum.c -o cksum.out $(C_FLAGS)
 comm:
-	$(CC) $(TU)comm.c -o comm.out $(CFLAGS)
+	$(C_COMPILER) $(TU)comm.c -o comm.out $(C_FLAGS)
+csplit:
+	$(C_COMPILER) $(TU)csplit.c -o csplit.out $(C_FLAGS)
+cut:
+	$(C_COMPILER) $(TU)cut.c -o cut.out $(C_FLAGS)
+expand:
+	$(C_COMPILER) $(TU)expand.c -o expand.out $(C_FLAGS)
+fmt:
+	$(C_COMPILER) $(TU)fmt.c -o fmt.out $(C_FLAGS)
+fold:
+	$(C_COMPILER) $(TU)fold.c -o fold.out $(C_FLAGS)
+head:
+	$(C_COMPILER) $(TU)head.c -o head.out $(C_FLAGS)
+join:
+	$(C_COMPILER) $(TU)join.c -o join.out $(C_FLAGS)
+md5sum:
+	$(C_COMPILER) $(TU)md5sum.c -o md5sum.out $(C_FLAGS)
+nl:
+	$(C_COMPILER) $(TU)nl.c -o nl.out $(C_FLAGS)
+numfmt:
+	$(C_COMPILER) $(TU)numfmt.c -o numfmt.out $(C_FLAGS)
+od:
+	$(C_COMPILER) $(TU)od.c -o od.out $(C_FLAGS)
+paste:
+	$(C_COMPILER) $(TU)paste.c -o paste.out $(C_FLAGS)
+ptx:
+	$(C_COMPILER) $(TU)ptx.c -o ptx.out $(C_FLAGS)
+pr:
+	$(C_COMPILER) $(TU)pr.c -o pr.out $(C_FLAGS)
+sha1sum:
+	$(C_COMPILER) $(TU)sha1sum.c -o sha1sum.out $(C_FLAGS)
+shuf:
+	$(C_COMPILER) $(TU)shuf.c -o shuf.out $(C_FLAGS)
+sort:
+	$(C_COMPILER) $(TU)sort.c -o sort.out $(C_FLAGS)
+split:
+	$(C_COMPILER) $(TU)split.c -o split.out $(C_FLAGS)
+sum:
+	$(C_COMPILER) $(TU)sum.c -o sum.out $(C_FLAGS)
+tac:
+	$(C_COMPILER) $(TU)tac.c -o tac.out $(C_FLAGS)
+tail:
+	$(C_COMPILER) $(TU)tail.c -o tail.out $(C_FLAGS)
+tr:
+	$(C_COMPILER) $(TU)tr.c -o tr.out $(C_FLAGS)
+tsort:
+	$(C_COMPILER) $(TU)tsort.c -o tsort.out $(C_FLAGS)
+unexpand:
+	$(C_COMPILER) $(TU)unexpand.c -o unexpand.out $(C_FLAGS)
+uniq:
+	$(C_COMPILER) $(TU)uniq.c -o uniq.out $(C_FLAGS)
+wc:
+	$(C_COMPILER) $(TU)wc.c -o wc.out $(C_FLAGS)
 
 ### Shell utilities ###
 arch:
