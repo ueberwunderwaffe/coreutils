@@ -125,60 +125,88 @@ wc:
 
 ### Shell utilities ###
 arch:
-	$(CC) $(SU)arch.c -o arch.out $(CFLAGS)
+	$(C_COMPILER) $(SU)arch.c -o arch.out $(C_FLAGS)
+basename:
+	$(C_COMPILER) $(SU)basename.c -o basename.out $(C_FLAGS)
+chroot:
+	$(C_COMPILER) $(SU)chroot.c -o chroot.out $(C_FLAGS)
 date:
-	$(CC) $(SU)date.c -o date.out $(CFLAGS)
-echo:
-	$(CC) $(SU)echo.c -o echo.out $(CFLAGS)
-id:
-	$(CC) $(SU)id.c -o id.out $(CFLAGS)
-pwd:
-	$(CC) $(SU)pwd.c -o pwd.out $(CFLAGS)
-yes:
-	$(CC) $(SU)yes.c -o yes.out $(CFLAGS)
-whoami:
-	$(CC) $(SU)whoami.c -o whoami.out $(CFLAGS)
-logname:
-	$(CC) $(SU)logname.c -o logname.out $(CFLAGS)
-true:
-	$(CC) $(SU)true.c -o true.out $(CFLAGS)
-false:
-	$(CC) $(SU)false.c -o false.out $(CFLAGS)
-hostid:
-	$(CC) $(SU)hostid.c -o hostid.out $(CFLAGS)
-nproc:
-	$(CC) $(SU)nproc.c -o nproc.out $(CFLAGS)
-stat:
-	$(CC) $(SU)stat.c -o stat.out $(CFLAGS)
-timeout:
-	$(CC) $(SU)timeout.c -o timeout.out $(CFLAGS)
-tty:
-	$(CC) $(SU)tty.c -o tty.out $(CFLAGS)
-test:
-	$(CC) $(SU)test.c -o test.out $(CFLAGS)
-tee:
-	$(CC) $(SU)tee.c -o tee.out $(CFLAGS)
-uname:
-	$(CC) $(SU)uname.c -o uname.out $(CFLAGS)
-unlink:
-	$(CC) $(SU)unlink.c -o unlink.out $(CFLAGS)
-uptime:
-	$(CC) $(SU)uptime.c -o uptime.out $(CFLAGS)
-users:
-	$(CC) $(SU)users.c -o users.out $(CFLAGS)
-who:
-	$(CC) $(SU)who.c -o who.out $(CFLAGS)
-seq:
-	$(CC) $(SU)seq.c -o seq.out $(CFLAGS)
-printf:
-	$(CC) $(SU)printf.c -o printf.out $(CFLAGS)
-nice:
-	$(CC) $(SU)nice.c -o nice.out $(CFLAGS)
-nohup:
-	$(CC) $(SU)nohup.c -o nohup.out $(CFLAGS)
-factor:
-	$(CC) $(SU)factor.c -o factor.out $(CFLAGS)
-expr:
-	$(CC) $(SU)expr.c -o expr.out $(CFLAGS)
+	$(C_COMPILER) $(SU)date.c -o date.out $(C_FLAGS)
+dirname:
+	$(C_COMPILER) $(SU)dirname.c -o dirname.out $(C_FLAGS)
 du:
-	$(CC) $(SU)du.c -o du.out $(CFLAGS)
+	$(C_COMPILER) $(SU)du.c -o du.out $(C_FLAGS)
+echo:
+	$(C_COMPILER) $(SU)echo.c -o echo.out $(C_FLAGS)
+env:
+	$(C_COMPILER) $(SU)env.c -o env.out $(C_FLAGS)
+expr:
+	$(C_COMPILER) $(SU)expr.c -o expr.out $(C_FLAGS)
+factor:
+	$(C_COMPILER) $(SU)factor.c -o factor.out $(C_FLAGS)
+false:
+	$(C_COMPILER) $(SU)false.c -o false.out $(C_FLAGS)
+groups:
+	$(C_COMPILER) $(SU)groups.c -o groups.out $(C_FLAGS)
+hostid:
+	$(C_COMPILER) $(SU)hostid.c -o hostid.out $(C_FLAGS)
+id:
+	$(C_COMPILER) $(SU)id.c -o id.out $(C_FLAGS)
+link:
+	$(C_COMPILER) $(SU)link.c -o link.out $(C_FLAGS)
+logname:
+	$(C_COMPILER) $(SU)logname.c -o logname.out $(C_FLAGS)
+nice:
+	$(C_COMPILER) $(SU)nice.c -o nice.out $(C_FLAGS)
+nohup:
+	$(C_COMPILER) $(SU)nohup.c -o nohup.out $(C_FLAGS)
+nproc:
+	$(C_COMPILER) $(SU)nproc.c -o npoc.out $(C_FLAGS)
+pathchk:
+	$(C_COMPILER) $(SU)pathchk.c -o pathchk.out $(C_FLAGS)
+pinky:
+	$(C_COMPILER) $(SU)pinky.c -o pinky.out $(C_FLAGS)
+printenv:
+	$(C_COMPILER) $(SU)printenv.c -o printenv.out $(C_FLAGS)
+printf:
+	$(C_COMPILER) $(SU)printf.c -o printf.out $(C_FLAGS)
+pwd:
+	$(C_COMPILER) $(SU)pwd.c -o pwd.out $(C_FLAGS)
+readlink:
+	$(C_COMPILER) $(SU)readlink.c -o readlink.out $(C_FLAGS)
+runcon:
+	$(C_COMPILER) $(SU)runcon.c -o runcon.out $(C_FLAGS)
+seq:
+	$(C_COMPILER) $(SU)seq.c -o seq.out $(C_FLAGS)
+sleep:
+	$(C_COMPILER) $(SU)sleep.c -o sleep.out $(C_FLAGS)
+stat:
+	$(C_COMPILER) $(SU)stat.c -o stat.out $(C_FLAGS)
+stdbuf:
+	$(C_COMPILER) $(SU)stdbuf.c -o stdbuf.out $(C_FLAGS)
+stty:
+	$(C_COMPILER) $(SU)stty.c -o stty.out $(C_FLAGS)
+tee:
+	$(C_COMPILER) $(SU)tee.c -o tee.out $(C_FLAGS)
+test:
+	$(C_COMPILER) $(SU)test.c -o test.out $(C_FLAGS)
+timeout:
+	$(C_COMPILER) $(SU)timeout.c -o timeout.out $(C_FLAGS)
+true:
+	$(C_COMPILER) $(SU)true.c -o true.out $(C_FLAGS)
+tty:
+	$(C_COMPILER) $(SU)tty.c -o tty.out $(C_FLAGS)
+uname:
+	$(C_COMPILER) $(SU)uname.c -o uname.out $(C_FLAGS)
+unlink:
+	$(C_COMPILER) $(SU)unlink.c -o unlink.out $(C_FLAGS)
+uptime:
+	$(C_COMPILER) $(SU)uptime.c -o uptime.out $(C_FLAGS)
+users:
+	$(C_COMPILER) $(SU)users.c -o users.out $(C_FLAGS)
+who:
+	$(C_COMPILER) $(SU)who.c -o who.out $(C_FLAGS)
+whoami:
+	$(C_COMPILER) $(SU)whoami.c -o whoami.out $(C_FLAGS)
+yes:
+	$(C_COMPILER) $(SU)yes.c -o yes.out $(C_FLAGS)
