@@ -80,7 +80,6 @@ int compare(const void *a, const void *b) {
   first = (char *)malloc(strlen(*(char **)a) * sizeof(char));
   if (first == NULL) {
     printf("[FAILED compare()]: Memory allocation\n");
-    free(first);
     return FALSE;
   }
 
@@ -88,7 +87,6 @@ int compare(const void *a, const void *b) {
   second = (char *)malloc(strlen(*(char **)b) * sizeof(char));
   if (second == NULL) {
     printf("[FAILED compare()]: Memory allocation\n");
-    free(second);
     return FALSE;
   }
 
@@ -120,7 +118,6 @@ int compare_time(const void *a, const void *b) {
                                      sizeof(struct file_data));
   if (files == NULL) {
     printf("[FAILED compare_time()]: Memory allocation\n");
-    free(files);
     return (FALSE);
   }
 
@@ -203,7 +200,6 @@ int set_time_and_name(char *curr_dir, char **file_name, int num_files) {
                                      sizeof(struct file_data));
   if (files == NULL) {
     printf("[FAILED set_time_and_name()]: Memory allocation\n");
-    free(files);
     return (FALSE);
   }
 
@@ -212,7 +208,6 @@ int set_time_and_name(char *curr_dir, char **file_name, int num_files) {
   if (path == NULL) {
     printf("[FAILED set_time_and_name()]: Memory allocation\n");
     free(files);
-    free(path);
     return (FALSE);
   }
 
@@ -261,7 +256,6 @@ int data_filling(const char *curr_dir, const char **file_name, int num_files) {
   files = (struct file_data *)malloc(sizeof(struct file_data) * num_files);
   if (files == NULL) {
     printf("[FAILED data_filling()]: Memory allocation\n");
-    free(files);
     return (FALSE);
   }
 
@@ -270,7 +264,6 @@ int data_filling(const char *curr_dir, const char **file_name, int num_files) {
   if (path == NULL) {
     printf("[FAILED data_filling()]: Memory allocation\n");
     free(files);
-    free(path);
     return (FALSE);
   }
 
@@ -404,7 +397,6 @@ long long total(const char **file_name, int num_files) {
   files = (struct file_data *)malloc(num_files * sizeof(struct file_data));
   if (files == NULL) {
     printf("[FAILED total()]: Memory allocation\n");
-    free(files);
     return (FALSE);
   }
 
@@ -445,7 +437,6 @@ int print(const char *curr_dir, const char **file_name, int num_files) {
   files = (struct file_data *)malloc(num_files * sizeof(struct file_data));
   if (files == NULL) {
     printf("[FAILED print()]: Memory allocation\n");
-    free(files);
     return (FALSE);
   }
 
@@ -454,7 +445,6 @@ int print(const char *curr_dir, const char **file_name, int num_files) {
   if (path == NULL) {
     printf("[FAILED print()]: Memory allocation\n");
     free(files);
-    free(path);
     return (FALSE);
   }
 
